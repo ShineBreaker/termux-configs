@@ -1,0 +1,101 @@
+#!/bin/bash
+# Dotfiles 管理脚本
+
+DOTFILES_DIR="$HOME/Documents/dotfiles"
+
+cd "$DOTFILES_DIR" || exit 1
+
+usage() {
+    echo "用法: $0 <命令> [包名]"
+    echo ""
+    echo "命令:"
+    echo "  add <包名>    - 添加新包 (交互式)"
+    echo "  stow <包名>   - 创建符号链接"
+    echo "  unstow <包名> - 移除符号链接"
+    echo "  restow <包名> - 重新创建符号链接"
+    echo "  list          - 列出所有包"
+    echo "  status        - 检查链接状态"
+    echo ""
+    echo "示例:"
+    echo "  $0 stow fish"
+    echo "  $0 restow termux"
+    echo "  $0 list"
+}
+
+list_packages() {
+    echo "可用包:"
+    for dir in */; do
+        pkg=${dir%/}
+        # 检查是否已链接
+        if [ -L "$HOME/.config/$pkg" ] || [ -L "$HOME/.$pkg" ] || [ -L "$HOME/.${pkg}rc" ]; then
+            echo "  ✓ $pkg (已链接)"
+        else
+            echo "  ○ $pkg (未链接)"
+        fi
+    done
+}
+
+check_status() {
+    echo "链接状态:"
+    for dir in */; do
+        pkg=${dir%/}
+        echo ""
+        echo "[$pkg]"
+        find "$pkg" -type f | while read -r file; do
+            target="${file#$pkg/}"
+            target_path="$HOME/$target"
+            if [ -L "$target_path" ]; then
+                echo "  ✓ $target"
+            elif [ -e "$target_path" ]; then
+                echo "  ! $target (存在但非链接)"
+            else
+                echo "  ✗ $target (未链接)"
+            fi
+        done
+    done
+}
+
+case "$1" in
+    add)
+        if [ -z "$2" ]; then
+            echo "错误: 请指定包名"
+            exit 1
+        fi
+        echo "创建新包: $2"
+        echo "请输入配置路径 (相对于 ~):"
+        read -r path
+        mkdir -p "$2/$path"
+        echo "包目录已创建: $2/$path"
+        echo "请将配置文件移动到此目录，然后运行: $0 stow $2"
+        ;;
+    stow)
+        if [ -z "$2" ]; then
+            echo "错误: 请指定包名"
+            exit 1
+        fi
+        stow -v -t ~ "$2"
+        ;;
+    unstow)
+        if [ -z "$2" ]; then
+            echo "错误: 请指定包名"
+            exit 1
+        fi
+        stow -D -v -t ~ "$2"
+        ;;
+    restow)
+        if [ -z "$2" ]; then
+            echo "错误: 请指定包名"
+            exit 1
+        fi
+        stow -R -v -t ~ "$2"
+        ;;
+    list)
+        list_packages
+        ;;
+    status)
+        check_status
+        ;;
+    *)
+        usage
+        ;;
+esac
