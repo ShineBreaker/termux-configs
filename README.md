@@ -29,7 +29,7 @@ pkg install git stow fish
 # 2. 克隆仓库
 mkdir -p ~/Documents
 cd ~/Documents
-git clone https://github.com/你的用户名/你的仓库.git dotfiles
+git clone https://codeberg.org/BrokenShine/Termux-configs.git dotfiles
 
 # 3. 进入仓库目录
 cd dotfiles
@@ -50,7 +50,7 @@ pkg install -y git stow fish fastfetch
 # 2. 克隆仓库
 mkdir -p ~/Documents
 cd ~/Documents
-git clone https://github.com/你的用户名/你的仓库.git dotfiles
+git clone https://codeberg.org/BrokenShine/Termux-configs.git dotfiles
 cd dotfiles
 
 # 3. 链接所有配置包
@@ -349,7 +349,7 @@ pkg install git stow fish
 # 2. 克隆仓库
 mkdir -p ~/Documents
 cd ~/Documents
-git clone https://github.com/你的用户名/你的仓库.git dotfiles
+git clone https://codeberg.org/BrokenShine/Termux-configs.git dotfiles
 
 # 3. 运行安装脚本
 cd dotfiles
@@ -458,7 +458,24 @@ fastfetch --config ~/Documents/dotfiles/fastfetch/.config/fastfetch/config.jsonc
 
 ---
 
-## 📚 参考
+## 📚 文档
+
+详细文档已移至 `docs/` 目录：
+
+| 文档 | 说明 |
+|------|------|
+| [docs/index.md](./docs/index.md) | 文档首页和导航 |
+| [docs/installation.md](./docs/installation.md) | 安装指南 |
+| [docs/keybindings.md](./docs/keybindings.md) | 快捷键和命令参考 |
+| [docs/fastfetch.md](./docs/fastfetch.md) | Fastfetch 配置说明 |
+| [docs/dotfiles-management.md](./docs/dotfiles-management.md) | Dotfiles 管理指南 |
+| [docs/customization.md](./docs/customization.md) | 自定义配置教程 |
+| [docs/troubleshooting.md](./docs/troubleshooting.md) | 故障排除 |
+| [docs/doom-emacs.md](./docs/doom-emacs.md) | Doom Emacs 配置 |
+
+---
+
+## 🔗 参考
 
 - [Fish 文档](https://fishshell.com/docs/current/)
 - [Termux Wiki](https://wiki.termux.com/)
@@ -468,9 +485,3 @@ fastfetch --config ~/Documents/dotfiles/fastfetch/.config/fastfetch/config.jsonc
 
 ---
 
-## 📝 更新记录
-
-| 日期 | 版本 | 修改内容 |
-|------|------|----------|
-| 2026-03-23 | 1.0 | 初始版本，支持 Stow 管理 |
-| 2026-03-23 | 2.0 | 重构为 Git 仓库，支持克隆部署 |
