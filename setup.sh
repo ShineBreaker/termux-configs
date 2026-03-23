@@ -107,7 +107,7 @@ else
     print_success "OMA包管理器 已安装"
 fi
 
-# 安装 Emacs
+# 安装 GitUI
 if ! command -v git &> /dev/null; then
     print_info "正在安装 GitUI..."
     oma install -y gitui
