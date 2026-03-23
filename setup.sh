@@ -44,7 +44,7 @@ echo -e "${CYAN}🚀 Termux 优化配置安装脚本${NC}"
 echo "=========================================="
 echo ""
 echo "本脚本将自动完成以下操作："
-echo "  1. 安装必要软件 (Git, Stow, Fish, Fastfetch)"
+echo "  1. 安装必要软件 (OMA包管理器, GitUI, Emacs, Stow, Fish, Fastfetch)"
 echo "  2. 备份现有配置"
 echo "  3. 使用 Stow 链接配置文件"
 echo "  4. 设置 Fish 为默认 Shell"
@@ -93,24 +93,52 @@ echo ""
 print_step "1" "安装必要软件..."
 echo ""
 
-# 安装 Git
+# 安装 oma
 if ! command -v git &> /dev/null; then
-    print_info "正在安装 Git..."
-    pkg install -y git
+    print_info "正在安装 OMA包管理器..."
+    pkg install -y oma
     if [ $? -eq 0 ]; then
-        print_success "Git 安装成功"
+        print_success "OMA包管理器 安装成功"
     else
-        print_error "Git 安装失败"
+        print_error "OMA包管理器 安装失败"
         exit 1
     fi
 else
-    print_success "Git 已安装"
+    print_success "OMA包管理器 已安装"
+fi
+
+# 安装 Emacs
+if ! command -v git &> /dev/null; then
+    print_info "正在安装 GitUI..."
+    oma install -y gitui
+    if [ $? -eq 0 ]; then
+        print_success "GitUI 安装成功"
+    else
+        print_error "GitUI 安装失败"
+        exit 1
+    fi
+else
+    print_success "Emacs 已安装"
+fi
+
+# 安装 Emacs
+if ! command -v git &> /dev/null; then
+    print_info "正在安装 Emacs..."
+    oma install -y emacs
+    if [ $? -eq 0 ]; then
+        print_success "Emacs 安装成功"
+    else
+        print_error "Emacs 安装失败"
+        exit 1
+    fi
+else
+    print_success "Emacs 已安装"
 fi
 
 # 安装 Stow
 if ! command -v stow &> /dev/null; then
     print_info "正在安装 Stow..."
-    pkg install -y stow
+    oma install -y stow
     if [ $? -eq 0 ]; then
         print_success "Stow 安装成功"
     else
@@ -124,7 +152,7 @@ fi
 # 安装 Fish
 if ! command -v fish &> /dev/null; then
     print_info "正在安装 Fish Shell..."
-    pkg install -y fish
+    oma install -y fish
     if [ $? -eq 0 ]; then
         print_success "Fish 安装成功"
     else
@@ -138,9 +166,17 @@ fi
 # 安装 Fastfetch (可选)
 if ! command -v fastfetch &> /dev/null; then
     print_info "正在安装 Fastfetch..."
-    pkg install -y fastfetch 2>/dev/null || print_warning "Fastfetch 安装失败，将跳过"
+    oma install -y fastfetch 2>/dev/null || print_warning "Fastfetch 安装失败，将跳过"
 else
     print_success "Fastfetch 已安装"
+fi
+
+# 安装 Doom Emacs (可选)
+if ! command -v fastfetch &> /dev/null; then
+    print_info "正在安装 Doom Emacs..."
+    git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs 2>/dev/null || print_warning "Doom Emacs 安装失败，将跳过"
+else
+    print_success "Doom Emacs 已安装"
 fi
 
 echo ""
