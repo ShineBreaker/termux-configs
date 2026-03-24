@@ -3,3 +3,7 @@
 docs/
 
 *.md
+
+# 软件列表文件
+packages.txt
+pkglist.txt
