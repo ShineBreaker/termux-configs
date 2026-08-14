@@ -18,7 +18,6 @@ clang
 command-not-found
 dialog
 dos2unix
-emacs
 fastfetch
 fdisk
 ffmpeg

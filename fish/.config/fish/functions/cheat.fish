@@ -27,11 +27,11 @@ function cheat
     echo "  gd     git diff"
     echo
     echo (set_color yellow)"📊 系统信息 (Fastfetch):"
-    echo (set_color normal)"  ff         显示系统信息 (自动适配屏幕)"
-    echo "  ffmini     极简模式 (小屏幕)"
+    echo (set_color normal)"  ff         显示系统信息"
+    echo "  ffmini     紧凑模式 (小屏幕)"
     echo "  fffull     完整模式"
     echo "  ffcfg      编辑标准配置"
-    echo "  ffcfgmini  编辑极简配置"
+    echo "  ffcfgmini  编辑紧凑配置"
     echo
     echo (set_color yellow)"⚡ 其他:"
     echo (set_color normal)"  c      清屏"

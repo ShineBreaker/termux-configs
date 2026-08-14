@@ -7,7 +7,8 @@ function fish_greeting
     end
 end
 
-# 设置提示符
+# 设置提示符 (starship 已在 00-init.fish 中接管，此处为简版回退)
+if not type -q starship
 function fish_prompt
     set -l last_status $status
     set -l cwd (prompt_pwd)
@@ -24,4 +25,5 @@ function fish_prompt
     echo -n ' '
     echo -n $status_color'❯'(set_color normal)
     echo -n ' '
+end
 end

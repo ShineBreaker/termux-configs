@@ -6,13 +6,16 @@
 
 ## 🔧 使用 `dot` 命令
 
-`dot` 是一个封装了 Stow 的便捷命令，简化了 dotfiles 管理操作。
+`dot` 是一个封装了 Stow 的便捷命令。它通过 `~/.local/bin/dot` 软链接自动定位仓库，**与克隆位置无关**；也可用 `DOTFILES_DIR` 环境变量手动指定。
 
 ### 常用命令
 
 ```bash
 # 进入 dotfiles 目录
 dot cd
+
+# 输出仓库路径 (用于脚本中引用)
+dot path
 
 # 链接配置包
 dot stow fish
@@ -24,10 +27,10 @@ dot unstow fish
 # 重新链接 (修改配置后)
 dot restow fish
 
-# 查看所有包状态
+# 查看所有包及链接状态
 dot list
 
-# 检查链接状态
+# 检查链接状态 (已链接 / 未链接 / 冲突)
 dot status
 
 # 添加新包
@@ -39,7 +42,7 @@ dot add helix
 ## 📦 手动使用 Stow
 
 ```bash
-cd ~/Documents/dotfiles
+cd ~/dotfiles   # 你的仓库克隆位置
 
 # 链接包
 stow -t ~ <package>
@@ -101,18 +104,17 @@ dot add helix
 ```bash
 # 查看所有链接状态
 dot status
-
-# 或使用 Stow 模拟运行
-stow -n -v -t ~ fish
 ```
+
+`dot status` 对每个包显示三种状态之一：已链接、未链接、链接冲突。
 
 ---
 
 ## 🔄 重新链接所有包
 
 ```bash
-cd ~/Documents/dotfiles
-stow -R -t ~ bash fish fastfetch termux
+cd (dot path)
+stow -R -t ~ bin fish fastfetch termux
 ```
 
 ---
@@ -143,7 +145,7 @@ dot stow fish
 
 2. **修改前先备份**
    ```bash
-   cp fish/.config/fish/config.fish fish/.config/fish/config.fish.bak
+   cp fish/.config/fish/conf.d/99-abbr.fish fish/.config/fish/conf.d/99-abbr.fish.bak
    ```
 
 3. **修改后重新链接**

@@ -32,9 +32,9 @@ abbr -a cd 'z'
 abbr -a ff 'fastfetch'
 abbr -a ffmini 'fastfetch --config config-compact.jsonc'
 abbr -a fffull 'fastfetch'
-abbr -a ffcfg 'nano ~/.config/fastfetch/config.jsonc'
-abbr -a ffcfgmini 'nano ~/.config/fastfetch/config-compact.jsonc'
+abbr -a ffcfg '$EDITOR ~/.config/fastfetch/config.jsonc'
+abbr -a ffcfgmini '$EDITOR ~/.config/fastfetch/config-compact.jsonc'
 
 # 编辑配置缩写
-abbr -a fishrc 'nano ~/.config/fish/config.fish'
-abbr -a termuxrc 'nano ~/.termux/termux.properties'
+abbr -a fishrc '$EDITOR ~/.config/fish/config.fish'
+abbr -a termuxrc '$EDITOR ~/.termux/termux.properties'

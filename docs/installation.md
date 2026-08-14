@@ -7,7 +7,7 @@
 - **操作系统**: Android 7.0+
 - **应用**: Termux (F-Droid 或 GitHub 版本)
 - **依赖**: Git, GNU Stow, Fish Shell
-- **可选**: Fastfetch, Starship, fzf
+- **可选**: Fastfetch, Starship, zoxide, fzf
 
 ---
 
@@ -19,18 +19,14 @@
 # 1. 安装必要依赖
 pkg install git stow fish
 
-# 2. 克隆仓库
-mkdir -p ~/Documents
-cd ~/Documents
-git clone https://github.com/你的用户名/你的仓库.git dotfiles
+# 2. 克隆仓库到任意目录 (此处以 ~/dotfiles 为例)
+git clone https://codeberg.org/BrokenShine/Termux-configs.git ~/dotfiles
 
-# 3. 进入仓库目录
-cd dotfiles
-
-# 4. 运行安装脚本
+# 3. 运行安装脚本 (脚本自动定位自身所在目录)
+cd ~/dotfiles
 bash setup.sh
 
-# 5. 重启 Termux
+# 4. 重启 Termux
 # 完全关闭应用后重新打开
 ```
 
@@ -40,14 +36,12 @@ bash setup.sh
 # 1. 安装依赖
 pkg install -y git stow fish fastfetch
 
-# 2. 克隆仓库
-mkdir -p ~/Documents
-cd ~/Documents
-git clone https://github.com/你的用户名/你的仓库.git dotfiles
-cd dotfiles
+# 2. 克隆仓库 (任意目录)
+git clone https://codeberg.org/BrokenShine/Termux-configs.git ~/dotfiles
+cd ~/dotfiles
 
 # 3. 链接所有配置包
-stow -t ~ bash fish fastfetch termux
+stow -t ~ bin fish fastfetch termux
 
 # 4. 设置默认 shell
 chsh -s fish
@@ -66,13 +60,11 @@ termux-reload-settings
 # 1. 在新设备上安装依赖
 pkg install git stow fish
 
-# 2. 克隆仓库
-mkdir -p ~/Documents
-cd ~/Documents
-git clone https://github.com/你的用户名/你的仓库.git dotfiles
+# 2. 克隆仓库 (任意目录)
+git clone https://codeberg.org/BrokenShine/Termux-configs.git ~/dotfiles
 
 # 3. 运行安装脚本
-cd dotfiles
+cd ~/dotfiles
 bash setup.sh
 
 # 4. 重启 Termux
@@ -92,18 +84,8 @@ bash setup.sh
 
 ## 🔧 进阶功能（可选）
 
-### 安装 Starship 提示符
+工具遵循"已安装则自动启用"的原则（见 `fish/.config/fish/conf.d/00-init.fish`）：
 
-```bash
-pkg install starship
-```
-
-安装后自动启用美观的提示符。
-
-### 安装 fzf 模糊查找
-
-```bash
-pkg install fzf
-```
-
-使用 `fcd` 命令快速目录跳转。
+- **Starship 提示符**: `pkg install starship`，安装后自动接管提示符；未安装时使用内置简版提示符
+- **zoxide 智能跳转**: `pkg install zoxide`，安装后 `cd` 自动变为智能跳转
+- **fzf 模糊查找**: `pkg install fzf`

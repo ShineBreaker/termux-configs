@@ -2,8 +2,7 @@
 
 使用 GNU Stow 管理的 Termux 配置文件仓库，专为 Android 终端优化。
 
-> **版本**: 2.0  
-> **最后更新**: 2026-03-23
+> **仓库可克隆到任意目录**，所有脚本自动定位自身位置，无需固定路径。
 
 ## 🌟 特性
 
@@ -11,9 +10,10 @@
 |------|------|
 | 🐟 **Fish Shell** | 现代化 Shell，自动补全、语法高亮、智能提示 |
 | ⌨️ **快捷键栏** | 两行手机优化的快捷键布局 |
-| 📊 **Fastfetch** | 系统信息显示，自动适配屏幕宽度 |
+| 📊 **Fastfetch** | 启动显示系统信息，小屏可用紧凑模式 |
 | ⚡ **快捷命令** | 大量缩写命令，减少移动端输入负担 |
 | 🔧 **Stow 管理** | 使用 GNU Stow 管理配置，易于维护和同步 |
+| 🧭 **自动定位** | `dot` 命令通过软链接自动找到仓库，克隆位置不限 |
 | 📱 **移动优先** | 所有配置针对小屏幕优化 |
 
 ---
@@ -26,18 +26,14 @@
 # 1. 安装必要依赖
 pkg install git stow fish
 
-# 2. 克隆仓库
-mkdir -p ~/Documents
-cd ~/Documents
-git clone https://codeberg.org/BrokenShine/Termux-configs.git dotfiles
+# 2. 克隆仓库到任意目录 (此处以 ~/dotfiles 为例)
+git clone https://codeberg.org/BrokenShine/Termux-configs.git ~/dotfiles
 
-# 3. 进入仓库目录
-cd dotfiles
-
-# 4. 运行安装脚本
+# 3. 运行安装脚本
+cd ~/dotfiles
 bash setup.sh
 
-# 5. 重启 Termux
+# 4. 重启 Termux
 # 完全关闭应用后重新打开
 ```
 
@@ -47,14 +43,12 @@ bash setup.sh
 # 1. 安装依赖
 pkg install -y git stow fish fastfetch
 
-# 2. 克隆仓库
-mkdir -p ~/Documents
-cd ~/Documents
-git clone https://codeberg.org/BrokenShine/Termux-configs.git dotfiles
-cd dotfiles
+# 2. 克隆仓库 (任意目录)
+git clone https://codeberg.org/BrokenShine/Termux-configs.git ~/dotfiles
+cd ~/dotfiles
 
 # 3. 链接所有配置包
-stow -t ~ bash fish fastfetch termux
+stow -t ~ bin fish fastfetch termux
 
 # 4. 设置默认 shell
 chsh -s fish
@@ -70,32 +64,35 @@ termux-reload-settings
 ## 📁 仓库结构
 
 ```
-~/Documents/dotfiles/
-├── bash/                    # Bash 配置
-│   └── .bashrc
-├── fish/                    # Fish Shell 配置
+~/dotfiles/                 # 克隆到任意目录均可
+├── bin/                    # dot 管理命令
+│   └── .local/bin/dot      # 链接到 ~/.local/bin/dot
+├── fish/                   # Fish Shell 配置
 │   └── .config/fish/
-│       ├── config.fish      # 主配置文件
-│       ├── fish_variables   # 变量存储
-│       ├── functions/       # 自定义函数
-│       │   ├── cheat.fish   # 命令参考
-│       │   ├── dot.fish     # Dotfiles 管理
-│       │   ├── termux-reload.fish
-│       │   └── update.fish
-│       └── conf.d/          # 配置片段
-├── fastfetch/               # Fastfetch 配置
+│       ├── config.fish     # 主配置入口 (说明见文件内注释)
+│       ├── conf.d/         # 按功能拆分的配置片段
+│       │   ├── 00-init.fish      # 工具集成 (zoxide / starship)
+│       │   ├── 05-env.fish       # 环境变量与 PATH
+│       │   ├── 20-startup.fish   # 欢迎消息与提示符
+│       │   └── 99-abbr.fish      # 移动友好缩写
+│       └── functions/      # 自定义函数
+│           ├── cheat.fish        # 命令参考
+│           ├── dot.fish          # dot 命令 (转发 cd，其余给 ~/.local/bin/dot)
+│           ├── termux-reload.fish
+│           └── update.fish
+├── fastfetch/              # Fastfetch 配置
 │   └── .config/fastfetch/
-│       ├── config.jsonc     # 标准模式
+│       ├── config.jsonc          # 标准模式
 │       └── config-compact.jsonc  # 紧凑模式
-├── termux/                  # Termux 应用配置
+├── termux/                 # Termux 应用配置
 │   └── .termux/
-│       ├── termux.properties # 应用设置
-│       ├── colors.properties # 颜色主题
-│       └── font.ttf         # 自定义字体
-├── setup.sh                 # 一键安装脚本
-├── dot                      # 管理脚本 (Bash)
-├── README.md                # 本文件
-└── AGENTS.md                # AI Agent 文档
+│       ├── termux.properties     # 应用设置与快捷键栏
+│       ├── colors.properties     # 颜色主题
+│       └── font.ttf              # 自定义字体
+├── setup.sh                # 一键安装脚本
+├── packages.txt            # 软件包列表 (setup.sh install/export)
+├── docs/                   # 详细文档
+└── README.md               # 本文件
 ```
 
 ---
@@ -104,7 +101,7 @@ termux-reload-settings
 
 | 包名 | 说明 | 链接目标 |
 |------|------|----------|
-| `bash` | Bash shell 配置 | `~/.bashrc` |
+| `bin` | `dot` 管理命令 | `~/.local/bin/dot` |
 | `fish` | Fish shell 配置 | `~/.config/fish/` |
 | `fastfetch` | 系统信息显示配置 | `~/.config/fastfetch/` |
 | `termux` | Termux 应用设置 | `~/.termux/` |
@@ -133,6 +130,7 @@ termux-reload-settings
 | `ll` | 长列表 (ls -l) |
 | `la` | 显示隐藏文件 |
 | `lt` | 按时间排序列表 |
+| `cd` | zoxide 智能跳转 |
 
 ### 包管理
 | 命令 | 说明 |
@@ -156,17 +154,19 @@ termux-reload-settings
 ### 系统信息 (Fastfetch)
 | 命令 | 说明 |
 |------|------|
-| `ff` | 显示系统信息（自动适配屏幕） |
-| `ffmini` | 极简模式（小屏幕） |
+| `ff` | 显示系统信息 |
+| `ffmini` | 紧凑模式（小屏幕） |
 | `fffull` | 完整模式 |
 | `ffcfg` | 编辑标准配置 |
-| `ffcfgmini` | 编辑极简配置 |
+| `ffcfgmini` | 编辑紧凑配置 |
 
 ### 编辑配置
 | 命令 | 说明 |
 |------|------|
-| `fishrc` | 编辑 Fish 配置 |
+| `fishrc` | 编辑 Fish 配置入口 |
 | `termuxrc` | 编辑 Termux 配置 |
+
+编辑命令使用 `$EDITOR`（默认在 `05-env.fish` 中设为 `hx`）。
 
 ### 其他
 | 命令 | 说明 |
@@ -178,26 +178,18 @@ termux-reload-settings
 | `termux-reload` | 重载 Termux 设置 |
 | `cheat` | 查看所有快捷命令 |
 
-### Dotfiles 管理
-| 命令 | 说明 |
-|------|------|
-| `dot cd` | 进入 dotfiles 目录 |
-| `dot list` | 列出所有配置包 |
-| `dot status` | 检查链接状态 |
-| `dot stow <包>` | 链接配置包 |
-| `dot unstow <包>` | 取消链接 |
-| `dot restow <包>` | 重新链接 |
-| `dot add <包>` | 添加新配置包 |
-
 ---
 
 ## 🔧 Dotfiles 管理
 
-### 使用 `dot` 命令
+`dot` 命令封装了 Stow，通过 `~/.local/bin/dot` 软链接自动定位仓库，**与克隆位置无关**。也可用 `DOTFILES_DIR` 环境变量手动指定仓库位置。
 
 ```bash
 # 进入 dotfiles 目录
 dot cd
+
+# 输出仓库路径 (用于脚本)
+dot path
 
 # 链接配置包
 dot stow fish
@@ -209,10 +201,10 @@ dot unstow fish
 # 重新链接 (修改配置后)
 dot restow fish
 
-# 查看所有包状态
+# 查看所有包及链接状态
 dot list
 
-# 检查链接状态
+# 检查链接状态 (已链接 / 未链接 / 冲突)
 dot status
 
 # 添加新包
@@ -222,7 +214,7 @@ dot add helix
 ### 手动使用 Stow
 
 ```bash
-cd ~/Documents/dotfiles
+cd ~/dotfiles   # 你的仓库克隆位置
 
 # 链接包
 stow -t ~ <package>
@@ -238,24 +230,14 @@ stow -R -t ~ <package>
 
 ## 📊 Fastfetch 系统信息
 
-Fastfetch 已配置为在启动时自动显示系统信息，并根据屏幕宽度自动调整显示模式。
+启动 Fish 时自动显示系统信息。
 
 ### 显示模式
 
-| 模式 | 触发条件 | 说明 |
-|------|----------|------|
-| 标准模式 | 屏幕宽度 ≥ 45 字符 | 显示小 logo + 完整系统信息 |
-| 紧凑模式 | 屏幕宽度 < 45 字符 | 无 logo + 核心信息 |
-
-### 可用命令
-
-| 命令 | 说明 |
+| 模式 | 说明 |
 |------|------|
-| `ff` | 自动适配屏幕显示系统信息 |
-| `ffmini` | 极简模式（手动触发紧凑显示） |
-| `fffull` | 完整模式 |
-| `ffcfg` | 编辑标准配置 |
-| `ffcfgmini` | 编辑极简配置 |
+| 标准模式 | 启动时自动使用，小 logo + 完整系统信息 |
+| 紧凑模式 | 无 logo + 核心信息，小屏幕手动使用 `ffmini` 触发 |
 
 ---
 
@@ -264,45 +246,39 @@ Fastfetch 已配置为在启动时自动显示系统信息，并根据屏幕宽�
 ### 修改 Fish 配置
 
 ```bash
-# 方式一：直接编辑仓库中的文件
-nano ~/Documents/dotfiles/fish/.config/fish/config.fish
+# 方式一：使用快捷命令 (打开配置入口，各功能见文件内注释)
+fishrc
+
+# 方式二：直接编辑仓库中的文件
+dot cd               # 进入仓库
+$EDITOR fish/.config/fish/conf.d/99-abbr.fish
 
 # 然后重新链接
 dot restow fish
-
-# 方式二：使用快捷命令
-fishrc
 ```
 
 ### 修改快捷键栏
 
 ```bash
-# 编辑仓库中的配置文件
-nano ~/Documents/dotfiles/termux/.termux/termux.properties
-
-# 重新链接并重载
-dot restow termux
-termux-reload-settings
+termuxrc                    # 编辑 Termux 配置
+dot restow termux           # 重新链接
+termux-reload-settings      # 重载设置
 ```
 
 ### 添加自定义别名
 
-编辑 `~/Documents/dotfiles/fish/.config/fish/config.fish`，添加：
+编辑仓库中的 `fish/.config/fish/conf.d/99-abbr.fish`，添加：
 
 ```fish
 abbr -a 别名 '命令'
 ```
 
-然后重新链接：
-
-```bash
-dot restow fish
-```
+然后 `dot restow fish`。
 
 ### 提交更改到 Git
 
 ```bash
-cd ~/Documents/dotfiles
+dot cd
 git add .
 git commit -m "描述你的修改"
 git push
@@ -312,21 +288,11 @@ git push
 
 ## 🔧 进阶功能
 
-### 安装 Starship 提示符（可选）
+工具遵循"已安装则自动启用"的原则（见 `conf.d/00-init.fish`）：
 
-```bash
-pkg install starship
-```
-
-安装后自动启用美观的提示符。
-
-### 安装 fzf 模糊查找（可选）
-
-```bash
-pkg install fzf
-```
-
-使用 `fcd` 命令快速目录跳转。
+- **Starship 提示符**: `pkg install starship`，安装后自动接管提示符；未安装时使用内置简版提示符
+- **zoxide 智能跳转**: `pkg install zoxide`，安装后 `cd` 自动变为智能跳转
+- **fzf 模糊查找**: `pkg install fzf`
 
 ---
 
@@ -346,13 +312,11 @@ pkg install fzf
 # 1. 在新设备上安装依赖
 pkg install git stow fish
 
-# 2. 克隆仓库
-mkdir -p ~/Documents
-cd ~/Documents
-git clone https://codeberg.org/BrokenShine/Termux-configs.git dotfiles
+# 2. 克隆仓库 (任意目录)
+git clone https://codeberg.org/BrokenShine/Termux-configs.git ~/dotfiles
 
 # 3. 运行安装脚本
-cd dotfiles
+cd ~/dotfiles
 bash setup.sh
 
 # 4. 重启 Termux
@@ -373,13 +337,8 @@ chsh -s fish
 ### 快捷键栏不显示
 
 ```bash
-# 重新链接配置
 dot restow termux
-
-# 重载设置
 termux-reload-settings
-
-# 或重启 Termux
 ```
 
 ### 恢复默认 shell
@@ -390,25 +349,34 @@ chsh -s bash
 
 ### Dotfiles 链接问题
 
-**检查链接状态**：
 ```bash
+# 检查链接状态
 dot status
+
+# 重新链接所有包
+cd (dot path)
+stow -R -t ~ bin fish fastfetch termux
 ```
 
-**重新链接所有包**：
-```bash
-cd ~/Documents/dotfiles
-stow -R -t ~ bash fish fastfetch termux
-```
+**链接冲突**（提示文件已存在）：
 
-**链接冲突**：
 ```bash
-# 如果提示文件已存在，先备份并删除
+# 先备份并删除冲突文件
 mv ~/.config/fish ~/.config/fish.bak.$(date +%Y%m%d_%H%M%S)
 
 # 然后重新链接
 dot stow fish
 ```
+
+### dot 命令找不到仓库
+
+`dot` 依赖 `~/.local/bin/dot` 软链接定位仓库。确认 `bin` 包已链接：
+
+```bash
+dot stow bin
+```
+
+或手动指定位置：`set -Ux DOTFILES_DIR ~/dotfiles`
 
 ### Stow 命令未找到
 
@@ -420,47 +388,41 @@ pkg install stow
 
 ```bash
 # 检查网络连接
-ping github.com
+ping codeberg.org
 
 # 使用 SSH 克隆（需要配置密钥）
-git clone git@github.com:你的用户名/你的仓库.git ~/Documents/dotfiles
+git clone git@codeberg.org:BrokenShine/Termux-configs.git ~/dotfiles
 ```
 
 ### Fish 配置错误
 
 ```bash
-# 使用 Bash 启动
+# 1. 使用 Bash 启动
 bash
 
-# 进入仓库目录
-cd ~/Documents/dotfiles
+# 2. 检查配置语法 (配置拆分在 conf.d/)
+cd (dot path)
+fish -n fish/.config/fish/conf.d/*.fish
 
-# 检查 Fish 配置语法
-fish -n fish/.config/fish/config.fish
-
-# 修复错误后重新链接
-stow -R -t ~ fish
-
-# 重新加载 Fish
+# 3. 修复错误后重启 Fish
 fish
-source ~/.config/fish/config.fish
 ```
 
 ### Fastfetch 显示异常
 
 ```bash
 # 检查配置文件 JSON 语法
-fastfetch --config ~/Documents/dotfiles/fastfetch/.config/fastfetch/config.jsonc
+fastfetch --config ~/.config/fastfetch/config.jsonc
 
 # 查看详细错误
-fastfetch --config ~/Documents/dotfiles/fastfetch/.config/fastfetch/config.jsonc --debug
+fastfetch --config ~/.config/fastfetch/config.jsonc --debug
 ```
 
 ---
 
 ## 📚 文档
 
-详细文档已移至 `docs/` 目录：
+详细文档在 `docs/` 目录：
 
 | 文档 | 说明 |
 |------|------|
@@ -471,7 +433,6 @@ fastfetch --config ~/Documents/dotfiles/fastfetch/.config/fastfetch/config.jsonc
 | [docs/dotfiles-management.md](./docs/dotfiles-management.md) | Dotfiles 管理指南 |
 | [docs/customization.md](./docs/customization.md) | 自定义配置教程 |
 | [docs/troubleshooting.md](./docs/troubleshooting.md) | 故障排除 |
-| [docs/doom-emacs.md](./docs/doom-emacs.md) | Doom Emacs 配置 |
 
 ---
 
@@ -482,6 +443,3 @@ fastfetch --config ~/Documents/dotfiles/fastfetch/.config/fastfetch/config.jsonc
 - [GNU Stow 手册](https://www.gnu.org/software/stow/manual/)
 - [Starship](https://starship.rs/)
 - [Fastfetch 文档](https://github.com/fastfetch-cli/fastfetch/wiki/Configuration)
-
----
-

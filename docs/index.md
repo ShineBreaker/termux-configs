@@ -1,11 +1,10 @@
 # Termux Dotfiles 文档中心
 
-> **版本**: 2.0  
-> **最后更新**: 2026-03-23
-
 ## 项目简介
 
 使用 GNU Stow 管理的 Termux 配置文件仓库，专为 Android 终端优化。
+
+> **仓库可克隆到任意目录**——脚本通过自身位置或软链接自动定位仓库，无需固定路径。
 
 ## 🌟 核心特性
 
@@ -13,34 +12,33 @@
 |------|------|
 | 🐟 **Fish Shell** | 现代化 Shell，自动补全、语法高亮、智能提示 |
 | ⌨️ **快捷键栏** | 两行手机优化的快捷键布局 |
-| 📊 **Fastfetch** | 系统信息显示，自动适配屏幕宽度 |
+| 📊 **Fastfetch** | 启动显示系统信息，小屏可用紧凑模式 |
 | ⚡ **快捷命令** | 大量缩写命令，减少移动端输入负担 |
 | 🔧 **Stow 管理** | 使用 GNU Stow 管理配置，易于维护和同步 |
+| 🧭 **自动定位** | `dot` 命令通过软链接自动找到仓库，克隆位置不限 |
 | 📱 **移动优先** | 所有配置针对小屏幕优化 |
 
 ## 📁 仓库结构
 
 ```
-~/Documents/dotfiles/
-├── bash/                    # Bash 配置
-├── fish/                    # Fish Shell 配置
-├── fastfetch/               # Fastfetch 配置
-├── termux/                  # Termux 应用配置
-├── doom/                    # Doom Emacs 配置
-├── setup.sh                 # 一键安装脚本
-├── dot                      # 管理脚本
-└── docs/                    # 文档目录
+~/dotfiles/                 # 克隆到任意目录均可
+├── bin/                    # dot 管理命令 → ~/.local/bin/dot
+├── fish/                   # Fish Shell 配置 → ~/.config/fish/
+├── fastfetch/              # Fastfetch 配置 → ~/.config/fastfetch/
+├── termux/                 # Termux 应用配置 → ~/.termux/
+├── setup.sh                # 一键安装脚本
+├── packages.txt            # 软件包列表
+└── docs/                   # 文档目录 (本目录，不参与 Stow)
 ```
 
 ## 📦 配置包说明
 
 | 包名 | 说明 | 链接目标 |
 |------|------|----------|
-| `bash` | Bash shell 配置 | `~/.bashrc` |
+| `bin` | `dot` 管理命令 | `~/.local/bin/dot` |
 | `fish` | Fish shell 配置 | `~/.config/fish/` |
 | `fastfetch` | 系统信息显示配置 | `~/.config/fastfetch/` |
 | `termux` | Termux 应用设置 | `~/.termux/` |
-| `doom` | Doom Emacs 配置 | `~/.config/doom/` |
 
 ## 📚 文档导航
 
@@ -52,7 +50,6 @@
 | [Dotfiles 管理](./dotfiles-management.md) | 使用 `dot` 命令和 Stow 管理配置 |
 | [自定义配置](./customization.md) | 如何修改和自定义配置 |
 | [故障排除](./troubleshooting.md) | 常见问题解决方法 |
-| [Doom Emacs](./doom-emacs.md) | Doom Emacs 移动端优化配置 |
 
 ## 🔗 外部参考
 

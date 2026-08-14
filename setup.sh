@@ -1,7 +1,7 @@
 #!/bin/bash
 # Termux 优化配置安装脚本
 # 使用 Stow 管理 dotfiles
-# 支持 Git 克隆部署
+# 支持 Git 克隆部署，克隆到任意目录均可运行
 
 set -e
 
@@ -13,11 +13,11 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# 仓库目录
-DOTFILES_DIR="$HOME/Documents/dotfiles"
+# 仓库目录 = 脚本所在目录
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # 软件列表文件
-PACKAGE_LIST="$DOTFILES_DIR/packages.txt"
+PACKAGE_LIST="$SCRIPT_DIR/packages.txt"
 
 # 打印带颜色的消息
 print_info() {
@@ -37,7 +37,7 @@ print_error() {
 }
 
 print_step() {
-    echo -e "${CYAN}[步骤 $1/7]${NC} $2"
+    echo -e "${CYAN}[步骤 $1/6]${NC} $2"
 }
 
 # 显示使用帮助
@@ -73,6 +73,12 @@ ensure_oma() {
     fi
 }
 
+# 读取软件列表 (跳过空行和注释行，去除首尾空白)
+read_packages() {
+    sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$PACKAGE_LIST" \
+        | grep -v '^$' | grep -v '^#'
+}
+
 # 从软件列表批量安装
 install_from_list() {
     if [ ! -f "$PACKAGE_LIST" ]; then
@@ -82,52 +88,32 @@ install_from_list() {
     fi
 
     print_info "读取软件列表: $PACKAGE_LIST"
-    
-    # 统计要安装的软件数量
-    local total=0
-    local installed=0
-    local failed=0
-    local skipped=0
-    
-    while IFS= read -r package || [ -n "$package" ]; do
-        # 跳过空行和注释行
-        [[ -z "$package" || "$package" =~ ^[[:space:]]*# ]] && continue
-        
-        # 去除首尾空白
-        package=$(echo "$package" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        
-        [[ -z "$package" ]] && continue
-        
-        total=$((total + 1))
-    done < "$PACKAGE_LIST"
-    
-    if [ $total -eq 0 ]; then
+
+    local total
+    total=$(read_packages | wc -l)
+
+    if [ "$total" -eq 0 ]; then
         print_warning "软件列表为空，没有需要安装的软件"
         return 0
     fi
-    
+
     print_info "发现 $total 个软件需要安装"
     echo ""
-    
-    # 安装软件
-    while IFS= read -r package || [ -n "$package" ]; do
-        # 跳过空行和注释行
-        [[ -z "$package" || "$package" =~ ^[[:space:]]*# ]] && continue
-        
-        # 去除首尾空白
-        package=$(echo "$package" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        
-        [[ -z "$package" ]] && continue
-        
+
+    local installed=0
+    local failed=0
+    local skipped=0
+
+    while IFS= read -r package; do
         echo -n "  安装 $package ... "
-        
+
         # 检查是否已安装
         if pkg list-installed 2>/dev/null | grep -q "^$package/"; then
             echo -e "${YELLOW}已安装${NC}"
             skipped=$((skipped + 1))
             continue
         fi
-        
+
         # 使用 oma 安装
         if oma install -y "$package" &> /dev/null; then
             echo -e "${GREEN}成功${NC}"
@@ -136,11 +122,11 @@ install_from_list() {
             echo -e "${RED}失败${NC}"
             failed=$((failed + 1))
         fi
-    done < "$PACKAGE_LIST"
-    
+    done < <(read_packages)
+
     echo ""
     print_success "安装完成: 成功 $installed, 跳过 $skipped, 失败 $failed"
-    
+
     if [ $failed -gt 0 ]; then
         print_warning "部分软件安装失败，请检查网络连接或软件名称是否正确"
     fi
@@ -149,7 +135,7 @@ install_from_list() {
 # 导出已安装的软件到列表
 export_packages() {
     print_info "正在导出已安装的软件列表..."
-    
+
     # 创建软件列表文件
     echo "# Termux 软件列表" > "$PACKAGE_LIST"
     echo "# 生成时间: $(date '+%Y-%m-%d %H:%M:%S')" >> "$PACKAGE_LIST"
@@ -158,37 +144,24 @@ export_packages() {
     echo "#   - 以 # 开头的行为注释，会被忽略" >> "$PACKAGE_LIST"
     echo "#   - 运行 '$0 install' 可从本列表批量安装" >> "$PACKAGE_LIST"
     echo "" >> "$PACKAGE_LIST"
-    
+
     # 获取已安装的软件列表（排除系统核心包）
-    # 使用临时文件避免管道中的子 shell 问题
-    local temp_list=$(mktemp)
-    
-    # 使用 pkg list-installed 获取已安装包
     # 格式: 包名/stable,now 版本 ...
-    pkg list-installed 2>/dev/null | grep -v '^Listing' | grep -v '^WARNING' | grep '/' > "$temp_list"
-    
-    while IFS= read -r line; do
-        # 提取包名（格式: 包名/stable,now 版本 ...）
-        local pkg_name=$(echo "$line" | cut -d'/' -f1)
-        
-        # 跳过空行
-        [ -z "$pkg_name" ] && continue
-        
+    pkg list-installed 2>/dev/null | grep -v '^Listing' | grep -v '^WARNING' | grep '/' | cut -d'/' -f1 | while IFS= read -r pkg_name; do
         # 跳过核心系统包
         case "$pkg_name" in
             bash|coreutils|curl|dash|debianutils|diffutils|dpkg|ed|findutils|gawk|gdbm|gpgv|grep|gzip|inetutils|less|libandroid-support|libbz2|libc++|libcrypt|libcurl|libevent|libexpat|libgcrypt|libgmp|libgnutls|libgpg-error|libiconv|libidn2|liblz4|liblzma|libmpfr|libncurses|libnghttp2|libnpth|libssh2|libtirpc|libunistring|lsof|nano|ncurses|ncurses-utils|net-tools|openssl|patch|pcre2|procps|psmisc|readline|resolv-conf|sed|tar|termux-am|termux-exec|termux-keyring|termux-licenses|termux-tools|unzip|util-linux|xz-utils|zlib|zstd)
                 continue
                 ;;
         esac
-        
-        echo "$pkg_name" >> "$PACKAGE_LIST"
-    done < "$temp_list"
-    
-    rm -f "$temp_list"
-    
+
+        echo "$pkg_name"
+    done >> "$PACKAGE_LIST"
+
     # 统计数量
-    local total=$(grep -v '^#' "$PACKAGE_LIST" | grep -v '^$' | wc -l)
-    
+    local total
+    total=$(grep -v '^#' "$PACKAGE_LIST" | grep -v '^$' | wc -l)
+
     print_success "已导出 $total 个软件到: $PACKAGE_LIST"
     print_info "你可以编辑此文件，删除不需要的软件，然后运行 '$0 install' 批量安装"
 }
@@ -226,12 +199,11 @@ echo "=========================================="
 echo ""
 echo "本脚本将自动完成以下操作："
 echo "  1. 从 packages.txt 安装软件"
-echo "  2. 安装 Doom Emacs (可选)"
-echo "  3. 备份现有配置"
-echo "  4. 使用 Stow 链接配置文件"
-echo "  5. 设置 Fish 为默认 Shell"
-echo "  6. 重载 Termux 设置"
-echo "  7. 验证配置"
+echo "  2. 备份现有配置"
+echo "  3. 使用 Stow 链接配置文件"
+echo "  4. 设置 Fish 为默认 Shell"
+echo "  5. 重载 Termux 设置"
+echo "  6. 验证配置"
 echo ""
 echo "=========================================="
 echo ""
@@ -246,29 +218,8 @@ if [ -z "$TERMUX_VERSION" ] && [ -z "$TERMUX_API_VERSION" ]; then
     fi
 fi
 
-# 检查是否在正确的目录
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ "$SCRIPT_DIR" != "$DOTFILES_DIR" ]; then
-    print_error "请在正确的目录运行此脚本"
-    echo ""
-    echo "正确的使用方式："
-    echo ""
-    echo "方式一：克隆仓库后运行"
-    echo "  mkdir -p ~/Documents"
-    echo "  cd ~/Documents"
-    echo "  git clone <仓库地址> dotfiles"
-    echo "  cd dotfiles"
-    echo "  bash setup.sh"
-    echo ""
-    echo "方式二：如果已在 ~/Documents/dotfiles 目录"
-    echo "  cd ~/Documents/dotfiles"
-    echo "  bash setup.sh"
-    echo ""
-    exit 1
-fi
-
-cd "$DOTFILES_DIR"
-print_success "已进入仓库目录: $DOTFILES_DIR"
+cd "$SCRIPT_DIR"
+print_success "仓库目录: $SCRIPT_DIR"
 echo ""
 
 # 步骤 1: 从 packages.txt 安装软件
@@ -283,37 +234,14 @@ install_from_list
 
 echo ""
 
-# 步骤 2: 安装 Doom Emacs (可选)
-print_step "2" "安装 Doom Emacs..."
-echo ""
-
-if [ -d "$HOME/.config/emacs" ]; then
-    print_success "Doom Emacs 已安装"
-else
-    print_info "正在克隆 Doom Emacs..."
-    if git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs 2>/dev/null; then
-        print_success "Doom Emacs 安装成功"
-        print_info "运行 '~/.config/emacs/bin/doom install' 完成配置"
-    else
-        print_warning "Doom Emacs 安装失败，跳过"
-    fi
-fi
-
-echo ""
-
-# 步骤 3: 备份现有配置
-print_step "3" "备份现有配置..."
+# 步骤 2: 备份现有配置
+print_step "2" "备份现有配置..."
 echo ""
 
 BACKUP_DIR="$HOME/.dotfiles_backup_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$BACKUP_DIR"
 
 # 备份现有配置
-if [ -f "$HOME/.bashrc" ]; then
-    print_info "备份 .bashrc"
-    cp "$HOME/.bashrc" "$BACKUP_DIR/"
-fi
-
 if [ -d "$HOME/.config/fish" ] && [ ! -L "$HOME/.config/fish" ]; then
     print_info "备份 ~/.config/fish"
     cp -r "$HOME/.config/fish" "$BACKUP_DIR/"
@@ -339,12 +267,11 @@ fi
 echo ""
 
 # 步骤 3: 使用 Stow 链接配置文件
-print_step "4" "使用 Stow 链接配置文件..."
+print_step "3" "使用 Stow 链接配置文件..."
 echo ""
 
 # 清理现有配置（避免冲突）
 print_info "清理现有配置..."
-rm -rf "$HOME/.bashrc" 2>/dev/null || true
 rm -rf "$HOME/.config/fish" 2>/dev/null || true
 rm -rf "$HOME/.config/fastfetch" 2>/dev/null || true
 rm -rf "$HOME/.termux" 2>/dev/null || true
@@ -353,7 +280,7 @@ rm -rf "$HOME/.termux" 2>/dev/null || true
 print_info "链接配置文件..."
 echo ""
 
-PACKAGES=(bash fish fastfetch termux)
+PACKAGES=(bin fish fastfetch termux)
 LINKED_COUNT=0
 
 for pkg in "${PACKAGES[@]}"; do
@@ -376,18 +303,20 @@ print_success "已链接 $LINKED_COUNT 个配置包"
 echo ""
 
 # 步骤 4: 设置 Fish 为默认 Shell
-print_step "5" "设置 Fish 为默认 Shell..."
+print_step "4" "设置 Fish 为默认 Shell..."
 echo ""
 
 # 创建 .termux/shell 文件
 if [ -d "$HOME/.termux" ]; then
     # 先删除旧文件（避免 Text file busy 问题）
     rm -f "$HOME/.termux/shell" 2>/dev/null || true
-    echo "/data/data/com.termux/files/usr/bin/fish" > "$HOME/.termux/shell" 2>/dev/null
-    if [ $? -eq 0 ]; then
-        print_success "已创建 shell 标记文件"
+    FISH_BIN="$(command -v fish || true)"
+    if [ -n "$FISH_BIN" ]; then
+        echo "$FISH_BIN" > "$HOME/.termux/shell" 2>/dev/null \
+            && print_success "已创建 shell 标记文件" \
+            || print_warning "无法创建 shell 标记文件，请手动设置"
     else
-        print_warning "无法创建 shell 标记文件，请手动设置"
+        print_warning "未找到 fish，跳过 shell 标记文件"
     fi
 fi
 
@@ -401,7 +330,7 @@ fi
 echo ""
 
 # 步骤 5: 重载 Termux 设置
-print_step "6" "重载 Termux 设置..."
+print_step "5" "重载 Termux 设置..."
 echo ""
 
 if command -v termux-reload-settings &> /dev/null; then
@@ -414,7 +343,7 @@ fi
 echo ""
 
 # 步骤 6: 验证配置
-print_step "7" "验证配置..."
+print_step "6" "验证配置..."
 echo ""
 
 # 验证链接
@@ -426,8 +355,8 @@ ALL_LINKED=true
 for pkg in "${PACKAGES[@]}"; do
     echo -n "  检查 $pkg ... "
     case "$pkg" in
-        bash)
-            if [ -L "$HOME/.bashrc" ]; then
+        bin)
+            if [ -L "$HOME/.local/bin/dot" ] || [ -x "$HOME/.local/bin/dot" ]; then
                 echo -e "${GREEN}正常${NC}"
             else
                 echo -e "${YELLOW}未配置${NC}"
@@ -479,8 +408,8 @@ echo "  3. 享受 Fish Shell 的便捷体验！"
 echo ""
 echo -e "${CYAN}📚 查看详细说明：${NC}"
 echo ""
-echo "  cat ~/Documents/dotfiles/README.md"
-echo "  cat ~/Documents/dotfiles/TERMUX_SETUP_README.md"
+echo "  cat $SCRIPT_DIR/README.md"
+echo "  ls $SCRIPT_DIR/docs/"
 echo ""
 echo -e "${CYAN}📦 软件包管理命令：${NC}"
 echo ""

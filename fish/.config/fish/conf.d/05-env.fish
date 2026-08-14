@@ -6,4 +6,3 @@ set -gx TERM xterm-256color
 
 # 设置路径
 fish_add_path -a -g $HOME/.local/bin
-fish_add_path -a -g $HOME/.config/emacs/bin

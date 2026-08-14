@@ -23,18 +23,15 @@ chsh -s fish
 # 1. 使用 Bash 启动
 bash
 
-# 2. 进入仓库目录
-cd ~/Documents/dotfiles
+# 2. 进入仓库目录，检查配置语法 (配置拆分在 conf.d/)
+dot cd
+fish -n fish/.config/fish/conf.d/*.fish
 
-# 3. 检查 Fish 配置语法
-fish -n fish/.config/fish/config.fish
-
-# 4. 修复错误后重新链接
+# 3. 修复错误后重新链接
 stow -R -t ~ fish
 
-# 5. 重新加载 Fish
+# 4. 重新启动 Fish
 fish
-source ~/.config/fish/config.fish
 ```
 
 ### 缩写命令不生效
@@ -47,11 +44,10 @@ source ~/.config/fish/config.fish
 abbr -a | grep 缩写名
 
 # 2. 重新链接配置
-cd ~/Documents/dotfiles
-stow -R -t ~ fish
+dot restow fish
 
-# 3. 重新加载配置
-source ~/.config/fish/config.fish
+# 3. 重新启动 Fish 会话
+fish
 
 # 4. 检查 Fish 版本
 fish --version
@@ -76,7 +72,7 @@ termux-reload-settings
 ### 检查配置文件权限
 
 ```bash
-ls -la termux/.termux/termux.properties
+ls -la ~/.termux/termux.properties
 ```
 
 ---
@@ -89,17 +85,14 @@ ls -la termux/.termux/termux.properties
 
 **解决**:
 ```bash
-# 1. 进入仓库目录
-cd ~/Documents/dotfiles
+# 1. 检查配置文件 JSON 语法
+fastfetch --config ~/.config/fastfetch/config.jsonc
 
-# 2. 检查配置文件 JSON 语法
-fastfetch --config fastfetch/.config/fastfetch/config.jsonc
+# 2. 查看详细错误
+fastfetch --config ~/.config/fastfetch/config.jsonc --debug
 
-# 3. 查看详细错误
-fastfetch --config fastfetch/.config/fastfetch/config.jsonc --debug
-
-# 4. 临时禁用 Fastfetch
-# 编辑 fish/.config/fish/config.fish，注释掉 fish_greeting 中的 fastfetch 调用
+# 3. 临时禁用 Fastfetch
+# 编辑 fish/.config/fish/conf.d/20-startup.fish，注释掉 fish_greeting 中的 fastfetch 调用
 ```
 
 ---
@@ -113,7 +106,6 @@ fastfetch --config fastfetch/.config/fastfetch/config.jsonc --debug
 **解决**:
 ```bash
 # 1. 检查冲突
-cd ~/Documents/dotfiles
 dot status
 
 # 2. 备份并删除冲突文件
@@ -131,6 +123,32 @@ pkg install stow
 
 ---
 
+## 🧭 dot 命令问题
+
+### dot 命令找不到仓库
+
+`dot` 依赖 `~/.local/bin/dot` 软链接定位仓库。确认 `bin` 包已链接：
+
+```bash
+dot stow bin
+```
+
+或手动指定位置：
+
+```fish
+set -Ux DOTFILES_DIR ~/dotfiles
+```
+
+### dot 命令未找到
+
+确认 `~/.local/bin` 在 PATH 中（`05-env.fish` 已自动添加），并检查链接：
+
+```bash
+ls -la ~/.local/bin/dot
+```
+
+---
+
 ## 🌐 Git 相关问题
 
 ### Git 克隆失败
@@ -140,17 +158,13 @@ pkg install stow
 **解决**:
 ```bash
 # 1. 检查网络连接
-ping github.com
+ping codeberg.org
 
 # 2. 安装 Git
 pkg install git
 
-# 3. 使用 SSH 或 HTTPS 克隆
-# HTTPS:
-git clone https://github.com/用户名/仓库名.git ~/Documents/dotfiles
-
-# SSH:
-git clone git@github.com:用户名/仓库名.git ~/Documents/dotfiles
+# 3. 使用 SSH 克隆（需要配置密钥）
+git clone git@codeberg.org:BrokenShine/Termux-configs.git ~/dotfiles
 ```
 
 ---
@@ -166,8 +180,8 @@ chsh -s bash
 ### 重新链接所有包
 
 ```bash
-cd ~/Documents/dotfiles
-stow -R -t ~ bash fish fastfetch termux
+cd (dot path)
+stow -R -t ~ bin fish fastfetch termux
 ```
 
 ### 完全卸载
@@ -177,12 +191,11 @@ stow -R -t ~ bash fish fastfetch termux
 chsh -s bash
 
 # 2. 取消所有链接
-cd ~/Documents/dotfiles
-stow -D -t ~ bash fish fastfetch termux
+cd (dot path)
+stow -D -t ~ bin fish fastfetch termux
 
 # 3. 删除仓库（可选）
-cd ~
-rm -rf ~/Documents/dotfiles
+rm -rf ~/dotfiles
 ```
 
 ---

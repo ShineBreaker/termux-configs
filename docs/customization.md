@@ -2,27 +2,36 @@
 
 本文档介绍如何修改和自定义 dotfiles 配置。
 
+> 所有示例中 `dot cd` 进入仓库；编辑命令使用 `$EDITOR`（默认 `hx`，可在 `conf.d/05-env.fish` 中修改）。
+
 ---
 
 ## 🐟 修改 Fish 配置
 
-### 方式一：直接编辑仓库文件
-
-```bash
-# 编辑配置文件
-nano ~/Documents/dotfiles/fish/.config/fish/config.fish
-
-# 重新链接
-dot restow fish
-```
-
-### 方式二：使用快捷命令
+### 方式一：使用快捷命令
 
 ```bash
 fishrc
 ```
 
-这将直接在编辑器中打开配置文件。
+打开配置入口文件，各功能的实际位置见文件内注释：
+
+| 文件 | 功能 |
+|------|------|
+| `conf.d/00-init.fish` | 工具集成 (zoxide / starship) |
+| `conf.d/05-env.fish` | 环境变量与 PATH |
+| `conf.d/20-startup.fish` | 欢迎消息与提示符 |
+| `conf.d/99-abbr.fish` | 移动友好缩写 |
+
+### 方式二：直接编辑仓库文件
+
+```bash
+dot cd
+$EDITOR fish/.config/fish/conf.d/99-abbr.fish
+
+# 重新链接
+dot restow fish
+```
 
 ---
 
@@ -30,7 +39,8 @@ fishrc
 
 ```bash
 # 编辑仓库中的配置文件
-nano ~/Documents/dotfiles/termux/.termux/termux.properties
+dot cd
+$EDITOR termux/.termux/termux.properties
 
 # 重新链接并重载
 dot restow termux
@@ -54,7 +64,7 @@ extra-keys = [['ESC','/','-','HOME','UP','END','PGUP'], \
 
 ## ➕ 添加自定义别名
 
-编辑 `~/Documents/dotfiles/fish/.config/fish/config.fish`，添加：
+编辑 `fish/.config/fish/conf.d/99-abbr.fish`，添加：
 
 ```fish
 abbr -a 别名 '命令'
@@ -84,10 +94,11 @@ dot restow fish
 ffcfg
 ```
 
-或手动编辑：
+或手动编辑（仓库中 `fastfetch/.config/fastfetch/config.jsonc`）：
 
 ```bash
-nano ~/Documents/dotfiles/fastfetch/.config/fastfetch/config.jsonc
+dot cd
+$EDITOR fastfetch/.config/fastfetch/config.jsonc
 ```
 
 ### 添加新模块
@@ -112,7 +123,7 @@ dot restow fastfetch
 ## 📝 提交更改到 Git
 
 ```bash
-cd ~/Documents/dotfiles
+dot cd
 git add .
 git commit -m "描述你的修改"
 git push
@@ -125,14 +136,14 @@ git push
 ### 1. 备份原文件
 
 ```bash
-cp fish/.config/fish/config.fish fish/.config/fish/config.fish.bak.$(date +%Y%m%d_%H%M%S)
+cp fish/.config/fish/conf.d/99-abbr.fish fish/.config/fish/conf.d/99-abbr.fish.bak.$(date +%Y%m%d_%H%M%S)
 ```
 
 ### 2. 验证语法
 
 **Fish:**
 ```bash
-fish -n fish/.config/fish/config.fish
+fish -n fish/.config/fish/conf.d/99-abbr.fish
 ```
 
 **JSON:**
@@ -143,7 +154,7 @@ fastfetch --config fastfetch/.config/fastfetch/config.jsonc
 ### 3. 测试加载
 
 ```bash
-source ~/.config/fish/config.fish
+fish   # 启动新 Fish 会话验证
 ```
 
 ### 4. 更新文档

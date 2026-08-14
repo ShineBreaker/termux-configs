@@ -1,92 +1,129 @@
 #!/bin/bash
 # Dotfiles 管理脚本
+# 通过 Stow 链接后 (~/.local/bin/dot)，从脚本自身路径自动定位仓库，
+# 克隆到任意目录均可使用；也可用 DOTFILES_DIR 环境变量覆盖。
 
-DOTFILES_DIR="$HOME/Documents/dotfiles"
+SCRIPT_PATH="$(readlink -f "$0")"
+DOTFILES_DIR="${DOTFILES_DIR:-${SCRIPT_PATH%/bin/.local/bin/dot}}"
 
-cd "$DOTFILES_DIR" || exit 1
+# 仓库内不参与 Stow 的顶层目录
+NON_PACKAGES=(docs)
+
+cd "$DOTFILES_DIR" 2>/dev/null || {
+    echo "错误: 无法定位 dotfiles 仓库 (当前推导: $DOTFILES_DIR)" >&2
+    echo "请确认 ~/.local/bin/dot 的软链接有效，或设置 DOTFILES_DIR 环境变量" >&2
+    exit 1
+}
 
 usage() {
-    echo "用法: $0 <命令> [包名]"
+    echo "用法: dot <命令> [包名]"
     echo ""
     echo "命令:"
-    echo "  add <包名>    - 添加新包 (交互式)"
-    echo "  stow <包名>   - 创建符号链接"
-    echo "  unstow <包名> - 移除符号链接"
-    echo "  restow <包名> - 重新创建符号链接"
-    echo "  list          - 列出所有包"
-    echo "  status        - 检查链接状态"
+    echo "  path            输出仓库路径"
+    echo "  add <包名>      添加新包 (交互式)"
+    echo "  stow <包名>     创建符号链接"
+    echo "  unstow <包名>   移除符号链接"
+    echo "  restow <包名>   重新创建符号链接"
+    echo "  list            列出所有包"
+    echo "  status          检查链接状态"
     echo ""
     echo "示例:"
-    echo "  $0 stow fish"
-    echo "  $0 restow termux"
-    echo "  $0 list"
+    echo "  dot stow fish"
+    echo "  dot restow termux"
+    echo "  dot list"
+}
+
+# 判断是否为非包目录 (docs 等)
+is_non_package() {
+    local dir
+    for dir in "${NON_PACKAGES[@]}"; do
+        [ "$1" = "$dir" ] && return 0
+    done
+    return 1
+}
+
+# 列出所有包名
+each_package() {
+    local dir pkg
+    for dir in */; do
+        pkg=${dir%/}
+        is_non_package "$pkg" && continue
+        echo "$pkg"
+    done
+}
+
+# 用 stow 干跑检测包状态: linked / unlinked / conflict
+# 注: stow -n 总会输出一行模拟模式 WARNING，需过滤后再判断
+pkg_status() {
+    local out rc
+    out="$(stow -n -v -t "$HOME" "$1" 2>&1)"; rc=$?
+    out="$(echo "$out" | grep -v 'simulation mode')"
+    if [ $rc -ne 0 ]; then
+        echo "conflict"
+    elif [ -n "$out" ]; then
+        echo "unlinked"
+    else
+        echo "linked"
+    fi
 }
 
 list_packages() {
-    echo "可用包:"
-    for dir in */; do
-        pkg=${dir%/}
-        # 检查是否已链接
-        if [ -L "$HOME/.config/$pkg" ] || [ -L "$HOME/.$pkg" ] || [ -L "$HOME/.${pkg}rc" ]; then
-            echo "  ✓ $pkg (已链接)"
-        else
-            echo "  ○ $pkg (未链接)"
-        fi
-    done
+    local pkg status mark color
+    echo "可用包 (位于 $DOTFILES_DIR):"
+    while IFS= read -r pkg; do
+        status="$(pkg_status "$pkg")"
+        case "$status" in
+            linked)   mark="✓"; color='\033[0;32m' ;;
+            conflict) mark="!"; color='\033[1;33m' ;;
+            *)        mark="○"; color='\033[0m' ;;
+        esac
+        echo -e "  $color$mark $pkg\033[0m ($status)"
+    done < <(each_package)
 }
 
 check_status() {
-    echo "链接状态:"
-    for dir in */; do
-        pkg=${dir%/}
-        echo ""
-        echo "[$pkg]"
-        find "$pkg" -type f | while read -r file; do
-            target="${file#$pkg/}"
-            target_path="$HOME/$target"
-            if [ -L "$target_path" ]; then
-                echo "  ✓ $target"
-            elif [ -e "$target_path" ]; then
-                echo "  ! $target (存在但非链接)"
-            else
-                echo "  ✗ $target (未链接)"
-            fi
-        done
-    done
+    local pkg status
+    echo "链接状态 ($DOTFILES_DIR → $HOME):"
+    while IFS= read -r pkg; do
+        status="$(pkg_status "$pkg")"
+        case "$status" in
+            linked)   echo -e "  \033[0;32m✓ $pkg (已链接)\033[0m" ;;
+            conflict) echo -e "  \033[0;31m! $pkg (链接冲突)\033[0m" ;;
+            *)        echo -e "  \033[0m○ $pkg (未链接)\033[0m" ;;
+        esac
+    done < <(each_package)
+}
+
+require_package_arg() {
+    if [ -z "$2" ]; then
+        echo "错误: 请指定包名" >&2
+        exit 1
+    fi
 }
 
 case "$1" in
+    path)
+        echo "$DOTFILES_DIR"
+        ;;
     add)
-        if [ -z "$2" ]; then
-            echo "错误: 请指定包名"
-            exit 1
-        fi
+        require_package_arg "$@"
         echo "创建新包: $2"
         echo "请输入配置路径 (相对于 ~):"
         read -r path
         mkdir -p "$2/$path"
         echo "包目录已创建: $2/$path"
-        echo "请将配置文件移动到此目录，然后运行: $0 stow $2"
+        echo "请将配置文件移动到此目录，然后运行: dot stow $2"
         ;;
     stow)
-        if [ -z "$2" ]; then
-            echo "错误: 请指定包名"
-            exit 1
-        fi
+        require_package_arg "$@"
         stow -v -t ~ "$2"
         ;;
     unstow)
-        if [ -z "$2" ]; then
-            echo "错误: 请指定包名"
-            exit 1
-        fi
+        require_package_arg "$@"
         stow -D -v -t ~ "$2"
         ;;
     restow)
-        if [ -z "$2" ]; then
-            echo "错误: 请指定包名"
-            exit 1
-        fi
+        require_package_arg "$@"
         stow -R -v -t ~ "$2"
         ;;
     list)

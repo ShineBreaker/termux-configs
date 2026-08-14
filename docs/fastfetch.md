@@ -6,12 +6,12 @@ Fastfetch 是一个快速、高度可定制的系统信息工具，类似于 Neo
 
 ## 📊 显示模式
 
-Fastfetch 已配置为在启动时自动显示系统信息，并根据屏幕宽度自动调整显示模式。
+启动 Fish 时自动以标准模式显示系统信息；小屏幕可手动切换紧凑模式。
 
-| 模式 | 触发条件 | 说明 |
-|------|----------|------|
-| 标准模式 | 屏幕宽度 ≥ 45 字符 | 显示小 logo + 完整系统信息 |
-| 紧凑模式 | 屏幕宽度 < 45 字符 | 无 logo + 核心信息 |
+| 模式 | 说明 |
+|------|------|
+| 标准模式 | 启动时自动使用，小 logo + 完整系统信息 |
+| 紧凑模式 | 无 logo + 核心信息 (OS, Device, CPU, RAM, Battery)，用 `ffmini` 触发 |
 
 ---
 
@@ -19,11 +19,11 @@ Fastfetch 已配置为在启动时自动显示系统信息，并根据屏幕宽�
 
 | 命令 | 说明 |
 |------|------|
-| `ff` | 自动适配屏幕显示系统信息 |
-| `ffmini` | 极简模式（手动触发紧凑显示） |
+| `ff` | 显示系统信息 |
+| `ffmini` | 紧凑模式 |
 | `fffull` | 完整模式 |
 | `ffcfg` | 编辑标准配置 |
-| `ffcfgmini` | 编辑极简配置 |
+| `ffcfgmini` | 编辑紧凑配置 |
 
 ---
 
@@ -31,15 +31,16 @@ Fastfetch 已配置为在启动时自动显示系统信息，并根据屏幕宽�
 
 ### 标准配置
 
-**路径**: `~/Documents/dotfiles/fastfetch/.config/fastfetch/config.jsonc`
+**仓库路径**: `fastfetch/.config/fastfetch/config.jsonc`
+**链接后路径**: `~/.config/fastfetch/config.jsonc`
 
-适用于屏幕宽度 ≥ 45 字符，显示小 logo 和完整系统信息。
+适用于常规屏幕，显示小 logo 和完整系统信息。
 
 ### 紧凑配置
 
-**路径**: `~/Documents/dotfiles/fastfetch/.config/fastfetch/config-compact.jsonc`
+**仓库路径**: `fastfetch/.config/fastfetch/config-compact.jsonc`
 
-适用于小屏幕，无 logo，只显示核心信息（OS, Device, CPU, RAM, Battery）。
+适用于小屏幕，无 logo，只显示核心信息。
 
 ---
 
@@ -47,7 +48,7 @@ Fastfetch 已配置为在启动时自动显示系统信息，并根据屏幕宽�
 
 ### 修改显示内容
 
-编辑 `~/Documents/dotfiles/fastfetch/.config/fastfetch/config.jsonc`，在 `modules` 数组中添加或删除模块：
+编辑标准配置，在 `modules` 数组中添加或删除模块：
 
 ```json
 {
@@ -59,8 +60,7 @@ Fastfetch 已配置为在启动时自动显示系统信息，并根据屏幕宽�
 ### 重新链接配置
 
 ```bash
-cd ~/Documents/dotfiles
-stow -R -t ~ fastfetch
+dot restow fastfetch
 ```
 
 ### 测试配置
@@ -108,12 +108,12 @@ fastfetch --list-modules
 
 ```bash
 # 检查配置文件 JSON 语法
-fastfetch --config ~/Documents/dotfiles/fastfetch/.config/fastfetch/config.jsonc
+fastfetch --config ~/.config/fastfetch/config.jsonc
 
 # 查看详细错误
-fastfetch --config ~/Documents/dotfiles/fastfetch/.config/fastfetch/config.jsonc --debug
+fastfetch --config ~/.config/fastfetch/config.jsonc --debug
 ```
 
 ### 临时禁用
 
-编辑 `~/Documents/dotfiles/fish/.config/fish/config.fish`，注释掉 `fish_greeting` 中的 fastfetch 调用。
+编辑 `fish/.config/fish/conf.d/20-startup.fish`，注释掉 `fish_greeting` 中的 fastfetch 调用。
