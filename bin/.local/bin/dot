@@ -111,9 +111,9 @@ case "$1" in
         echo "创建新包: $2"
         echo "请输入配置路径 (相对于 ~):"
         read -r path
-        # bash 不会展开变量中的 ~，手动将其展开为 $HOME
-        path="${path/#\~\//$HOME\/}"
-        path="${path/#\~/$HOME}"
+        # 包内路径须相对 ~ (stow 会映射到 $HOME)，剥离输入中的 ~ 前缀
+        path="${path/#\~\//}"
+        path="${path/#\~}"
         mkdir -p "$2/$path"
         echo "包目录已创建: $2/$path"
         echo "请将配置文件移动到此目录，然后运行: dot stow $2"

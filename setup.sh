@@ -31,14 +31,11 @@ is_non_package() {
     return 1
 }
 
-# 动态发现 Stow 包：仓库顶层目录，排除隐藏目录与非包目录
+# 动态发现 Stow 包：仓库顶层目录（glob 默认跳过隐藏目录），排除非包目录
 discover_packages() {
     local dir pkg
     for dir in */; do
         pkg=${dir%/}
-        case "$pkg" in
-            .*) continue ;;
-        esac
         is_non_package "$pkg" && continue
         echo "$pkg"
     done
@@ -76,7 +73,7 @@ show_help() {
     echo "  help          显示此帮助信息"
     echo ""
     echo "选项:"
-    echo "  --yes, -y     跳过删除现有配置前的确认（可单独使用，视为 full）"
+    echo "  --yes, -y     跳过删除现有配置前的确认（置于子命令前或后均可）"
     echo ""
     echo "示例:"
     echo "  $0 install    # 从列表安装软件"
@@ -205,9 +202,9 @@ export_packages() {
 # 是否跳过危险操作的交互确认（--yes/-y）
 ASSUME_YES=false
 if [ "${1:-}" = "--yes" ] || [ "${1:-}" = "-y" ]; then
-    # 单独传 --yes/-y 时视为完整安装
+    # --yes/-y 作为首参时，保留其后的子命令（缺省 full）
     ASSUME_YES=true
-    set -- full
+    set -- "${2:-full}"
 elif [ "${2:-}" = "--yes" ] || [ "${2:-}" = "-y" ]; then
     ASSUME_YES=true
 fi
