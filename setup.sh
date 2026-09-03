@@ -255,9 +255,11 @@ echo ""
 if [ -z "$TERMUX_VERSION" ] && [ -z "$TERMUX_API_VERSION" ]; then
     print_warning "未检测到 Termux 环境"
     echo "此脚本专为 Termux 设计"
-    read -p "是否继续? (y/N): " confirm
-    if [[ ! $confirm =~ ^[Yy]$ ]]; then
-        exit 1
+    if [ "$ASSUME_YES" != true ]; then
+        read -p "是否继续? (y/N): " confirm
+        if [[ ! $confirm =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
     fi
 fi
 
