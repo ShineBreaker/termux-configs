@@ -75,6 +75,9 @@ show_help() {
     echo "  full          执行完整的配置安装 (默认)"
     echo "  help          显示此帮助信息"
     echo ""
+    echo "选项:"
+    echo "  --yes, -y     跳过删除现有配置前的确认（可单独使用，视为 full）"
+    echo ""
     echo "示例:"
     echo "  $0 install    # 从列表安装软件"
     echo "  $0 export     # 导出已安装软件到列表"
@@ -86,8 +89,8 @@ show_help() {
 ensure_oma() {
     if ! command -v oma &> /dev/null; then
         print_info "正在安装 OMA 包管理器..."
-        pkg install -y oma
-        if [ $? -eq 0 ]; then
+        # set -e 下需用 if 直接承接退出码，$? 判断形式会使错误分支不可达
+        if pkg install -y oma; then
             print_success "OMA 包管理器安装成功"
         else
             print_error "OMA 包管理器安装失败"
@@ -128,12 +131,17 @@ install_from_list() {
     local installed=0
     local failed=0
     local skipped=0
+    local failed_pkgs=()
+
+    # 一次性缓存已安装列表，避免逐包查询
+    local installed_list
+    installed_list=$(pkg list-installed 2>/dev/null || true)
 
     while IFS= read -r package; do
         echo -n "  安装 $package ... "
 
         # 检查是否已安装
-        if pkg list-installed 2>/dev/null | grep -q "^$package/"; then
+        if grep -q "^$package/" <<< "$installed_list"; then
             echo -e "${YELLOW}已安装${NC}"
             skipped=$((skipped + 1))
             continue
@@ -146,6 +154,7 @@ install_from_list() {
         else
             echo -e "${RED}失败${NC}"
             failed=$((failed + 1))
+            failed_pkgs+=("$package")
         fi
     done < <(read_packages)
 
@@ -154,6 +163,8 @@ install_from_list() {
 
     if [ $failed -gt 0 ]; then
         print_warning "部分软件安装失败，请检查网络连接或软件名称是否正确"
+        print_info "安装失败的软件包："
+        printf '  %s\n' "${failed_pkgs[@]}"
     fi
 }
 
@@ -190,6 +201,16 @@ export_packages() {
     print_success "已导出 $total 个软件到: $PACKAGE_LIST"
     print_info "你可以编辑此文件，删除不需要的软件，然后运行 '$0 install' 批量安装"
 }
+
+# 是否跳过危险操作的交互确认（--yes/-y）
+ASSUME_YES=false
+if [ "${1:-}" = "--yes" ] || [ "${1:-}" = "-y" ]; then
+    # 单独传 --yes/-y 时视为完整安装
+    ASSUME_YES=true
+    set -- full
+elif [ "${2:-}" = "--yes" ] || [ "${2:-}" = "-y" ]; then
+    ASSUME_YES=true
+fi
 
 # 命令行参数处理
 case "${1:-full}" in
@@ -296,7 +317,20 @@ print_step "3" "使用 Stow 链接配置文件..."
 echo ""
 
 # 清理现有配置（避免冲突）
-print_info "清理现有配置..."
+# 危险操作：删除前需手动确认（--yes 跳过）
+if [ "$ASSUME_YES" = true ]; then
+    print_info "清理现有配置..."
+elif [ -t 0 ]; then
+    read -p "将删除并重建 ~/.config/fish 等配置目录 (已备份)，继续? (y/N): " confirm_clean
+    if [[ ! $confirm_clean =~ ^[Yy]$ ]]; then
+        print_error "已中止，未改动现有配置"
+        exit 1
+    fi
+    print_info "清理现有配置..."
+else
+    print_error "非交互环境需加 --yes 才会删除现有配置，已中止"
+    exit 1
+fi
 rm -rf "$HOME/.config/fish" 2>/dev/null || true
 rm -rf "$HOME/.config/fastfetch" 2>/dev/null || true
 rm -rf "$HOME/.termux" 2>/dev/null || true

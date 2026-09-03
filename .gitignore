@@ -1,1 +1,4 @@
 .mimosa/
+
+# Termux 运行时生成的 shell 标记文件（经折叠链接落到仓库内，不入库）
+termux/.termux/shell
