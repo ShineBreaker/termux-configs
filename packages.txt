@@ -1,161 +1,71 @@
-# Termux 软件列表
-# 生成时间: 2026-03-24 08:46:54
+# Termux 软件列表 (显式安装的顶层包，依赖在安装时自动解析)
+# 生成方式: bash setup.sh export (apt-mark showmanual，不含自动安装的依赖)
+#
 # 使用说明:
-#   - 每行一个软件包名
-#   - 以 # 开头的行为注释，会被忽略
-#   - 运行 'setup.sh install' 可从本列表批量安装
+#   - 每行一个软件包名，# 开头的行是注释
+#   - bash setup.sh install 从本列表批量安装
+#   - 不需要的包直接删行或注释掉即可
+#
+# ── 一次性迁移 (仅旧列表时代安装的设备需要执行) ──
+#   旧版 export 导出全量包并逐个安装，~100 个传递依赖被错误标记为
+#   manual。先按需删减本清单，然后在 Termux 真机执行:
+#
+#     apt-mark auto $(apt-mark showmanual)   # 全部转为自动安装
+#     xargs apt-mark manual < packages.txt   # 本清单恢复为显式安装
+#     bash setup.sh export                   # 重新导出(此后只含顶层包)
+#
+#   之后 apt autoremove 可安全回收未白名单的依赖包。
 
-abseil-cpp
-android-tools
-apt
-attr
-bc
-brotli
-bzip2
-c-ares
-ca-certificates
+# ── Shell 与终端体验 ──
+fish
+starship
+zoxide
+fzf
+zellij
+fastfetch
+stow
+oma
+
+# ── 开发工具 ──
+git
+gitui
+helix
+ripgrep
+openssh
+nodejs
+npm
+python
+python-pip
+uv
 clang
+make
+pkg-config
+m4
+flex
+ndk-sysroot
+tree-sitter
+perl
+android-tools
+
+# ── 媒体 ──
+ffmpeg
+
+# ── 图形 (Vulkan 软件渲染) ──
+x11-repo
+mesa-vulkan-icd-swrast
+vulkan-icd
+vulkan-loader-generic
+glslang
+ttf-dejavu
+
+# ── Termux 扩展与基础工具 ──
+termux-api
+termux-auth
+termux-am-socket
+openssh-sftp-server
+bc
 command-not-found
 dialog
 dos2unix
-fastfetch
 fdisk
-ffmpeg
-fftw
-fish
-flex
-fmt
-fontconfig
-freetype
-fribidi
-fzf
-game-music-emu
-giflib
-git
-gitui
-glib
-glslang
-harfbuzz
-helix
-krb5
-ldns
-libacl
-libandroid-execinfo
-libandroid-glob
-libandroid-posix-semaphore
-libandroid-selinux
-libandroid-shmem
-libandroid-stub
-libandroid-utimes
-libaom
-libass
-libassuan
-libblkid
-libbluray
-libbs2b
-libcairo
-libcap-ng
-libcompiler-rt
-libdav1d
-libdb
-libdrm
-libedit
-libfdisk
-libffi
-libflac
-libgit2
-libgraphite
-libicu
-libjpeg-turbo
-libllvm
-liblzo
-libmd
-libmount
-libmp3lame
-libmpg123
-libnettle
-libnghttp3
-libngtcp2
-libogg
-libopencore-amr
-libopenmpt
-libopus
-libpixman
-libplacebo
-libpng
-libprotobuf
-librav1e
-libresolv-wrapper
-libsamplerate
-libsmartcols
-libsndfile
-libsodium
-libsoxr
-libsqlite
-libsrt
-libssh
-libtheora
-libtiff
-libudfread
-libunbound
-libuuid
-libv4l
-libvidstab
-libvmaf
-libvo-amrwbenc
-libvorbis
-libvpx
-libwayland
-libwebp
-libx11
-libx264
-libx265
-libxau
-libxcb
-libxdmcp
-libxext
-libxml2
-libxrender
-libxshmfence
-libzimg
-libzmq
-littlecms
-lld
-llvm
-lz4
-m4
-make
 mandoc
-mesa-vulkan-icd-swrast
-ncurses-ui-libs
-ndk-sysroot
-nodejs
-npm
-ocl-icd
-oma
-openssh-sftp-server
-openssh
-perl
-pkg-config
-python-ensurepip-wheels
-python-pip
-python
-ripgrep
-rubberband
-starship
-stow
-svt-av1
-termux-am-socket
-termux-api
-termux-auth
-termux-core
-tree-sitter
-ttf-dejavu
-uv
-vulkan-icd
-vulkan-loader-generic
-x11-repo
-xvidcore
-xxhash
-zellij
-zoxide

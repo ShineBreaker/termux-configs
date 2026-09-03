@@ -68,7 +68,7 @@ show_help() {
     echo ""
     echo "命令:"
     echo "  install       从 packages.txt 批量安装软件"
-    echo "  export        导出已安装的软件到 packages.txt"
+    echo "  export        导出显式安装的软件 (manual) 到 packages.txt"
     echo "  full          执行完整的配置安装 (默认)"
     echo "  help          显示此帮助信息"
     echo ""
@@ -167,10 +167,10 @@ install_from_list() {
 
 # 导出已安装的软件到列表
 export_packages() {
-    print_info "正在导出已安装的软件列表..."
+    print_info "正在导出显式安装的软件列表 (apt-mark showmanual)..."
 
     # 创建软件列表文件
-    echo "# Termux 软件列表" > "$PACKAGE_LIST"
+    echo "# Termux 软件列表 (显式安装的顶层包，依赖在安装时自动解析)" > "$PACKAGE_LIST"
     echo "# 生成时间: $(date '+%Y-%m-%d %H:%M:%S')" >> "$PACKAGE_LIST"
     echo "# 使用说明:" >> "$PACKAGE_LIST"
     echo "#   - 每行一个软件包名" >> "$PACKAGE_LIST"
@@ -178,12 +178,11 @@ export_packages() {
     echo "#   - 运行 '$0 install' 可从本列表批量安装" >> "$PACKAGE_LIST"
     echo "" >> "$PACKAGE_LIST"
 
-    # 获取已安装的软件列表（排除系统核心包）
-    # 格式: 包名/stable,now 版本 ...
-    pkg list-installed 2>/dev/null | grep -v '^Listing' | grep -v '^WARNING' | grep '/' | cut -d'/' -f1 | while IFS= read -r pkg_name; do
-        # 跳过核心系统包
+    # 只导出显式安装 (manual) 的包，自动安装的依赖天然被过滤
+    apt-mark showmanual 2>/dev/null | while IFS= read -r pkg_name; do
+        # 跳过 bootstrap 自带的核心系统包
         case "$pkg_name" in
-            bash|coreutils|curl|dash|debianutils|diffutils|dpkg|ed|findutils|gawk|gdbm|gpgv|grep|gzip|inetutils|less|libandroid-support|libbz2|libc++|libcrypt|libcurl|libevent|libexpat|libgcrypt|libgmp|libgnutls|libgpg-error|libiconv|libidn2|liblz4|liblzma|libmpfr|libncurses|libnghttp2|libnpth|libssh2|libtirpc|libunistring|lsof|nano|ncurses|ncurses-utils|net-tools|openssl|patch|pcre2|procps|psmisc|readline|resolv-conf|sed|tar|termux-am|termux-exec|termux-keyring|termux-licenses|termux-tools|unzip|util-linux|xz-utils|zlib|zstd)
+            apt|bash|coreutils|curl|dash|debianutils|diffutils|dpkg|ed|findutils|gawk|gdbm|gpgv|grep|gzip|inetutils|less|libandroid-support|libbz2|libc++|libcrypt|libcurl|libevent|libexpat|libgcrypt|libgmp|libgnutls|libgpg-error|libiconv|libidn2|liblz4|liblzma|libmpfr|libncurses|libnghttp2|libnpth|libssh2|libtirpc|libunistring|lsof|nano|ncurses|ncurses-utils|net-tools|openssl|patch|pcre2|procps|psmisc|readline|resolv-conf|sed|tar|termux-am|termux-exec|termux-keyring|termux-licenses|termux-tools|unzip|util-linux|xz-utils|zlib|zstd)
                 continue
                 ;;
         esac
@@ -196,7 +195,7 @@ export_packages() {
     total=$(grep -v '^#' "$PACKAGE_LIST" | grep -v '^$' | wc -l)
 
     print_success "已导出 $total 个软件到: $PACKAGE_LIST"
-    print_info "你可以编辑此文件，删除不需要的软件，然后运行 '$0 install' 批量安装"
+    print_info "如需精简，可编辑此文件删除不需要的软件，然后运行 '$0 install' 批量安装"
 }
 
 # 是否跳过危险操作的交互确认（--yes/-y）
@@ -479,7 +478,7 @@ echo ""
 echo -e "${CYAN}📦 软件包管理命令：${NC}"
 echo ""
 echo "  setup.sh install  - 从 packages.txt 批量安装软件"
-echo "  setup.sh export   - 导出已安装软件到 packages.txt"
+echo "  setup.sh export   - 导出显式安装软件 (manual) 到 packages.txt"
 echo "  setup.sh help     - 显示帮助信息"
 echo ""
 echo -e "${CYAN}🔧 Dotfiles 管理命令：${NC}"
