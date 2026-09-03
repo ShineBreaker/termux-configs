@@ -20,6 +20,7 @@ usage() {
     echo ""
     echo "命令:"
     echo "  path            输出仓库路径"
+    echo "  cd              进入仓库目录 (fish 用户提供；其他 shell 用 cd \$(dot path))"
     echo "  add <包名>      添加新包 (交互式)"
     echo "  stow <包名>     创建符号链接"
     echo "  unstow <包名>   移除符号链接"
@@ -110,6 +111,9 @@ case "$1" in
         echo "创建新包: $2"
         echo "请输入配置路径 (相对于 ~):"
         read -r path
+        # bash 不会展开变量中的 ~，手动将其展开为 $HOME
+        path="${path/#\~\//$HOME\/}"
+        path="${path/#\~/$HOME}"
         mkdir -p "$2/$path"
         echo "包目录已创建: $2/$path"
         echo "请将配置文件移动到此目录，然后运行: dot stow $2"

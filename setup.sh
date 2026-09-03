@@ -19,6 +19,31 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # 软件列表文件
 PACKAGE_LIST="$SCRIPT_DIR/packages.txt"
 
+# 仓库内不参与 Stow 的顶层目录
+NON_PACKAGES=(docs)
+
+# 是否为非包目录
+is_non_package() {
+    local dir
+    for dir in "${NON_PACKAGES[@]}"; do
+        [ "$1" = "$dir" ] && return 0
+    done
+    return 1
+}
+
+# 动态发现 Stow 包：仓库顶层目录，排除隐藏目录与非包目录
+discover_packages() {
+    local dir pkg
+    for dir in */; do
+        pkg=${dir%/}
+        case "$pkg" in
+            .*) continue ;;
+        esac
+        is_non_package "$pkg" && continue
+        echo "$pkg"
+    done
+}
+
 # 打印带颜色的消息
 print_info() {
     echo -e "${BLUE}[信息]${NC} $1"
@@ -280,7 +305,10 @@ rm -rf "$HOME/.termux" 2>/dev/null || true
 print_info "链接配置文件..."
 echo ""
 
-PACKAGES=(bin fish fastfetch termux)
+PACKAGES=()
+while IFS= read -r pkg; do
+    PACKAGES+=("$pkg")
+done < <(discover_packages)
 LINKED_COUNT=0
 
 for pkg in "${PACKAGES[@]}"; do
@@ -385,6 +413,10 @@ for pkg in "${PACKAGES[@]}"; do
                 echo -e "${RED}异常${NC}"
                 ALL_LINKED=false
             fi
+            ;;
+        *)
+            # 用户自加包无特判规则，提示用 dot status 复核
+            echo -e "${YELLOW}已链接，可用 dot status 复核${NC}"
             ;;
     esac
 done
