@@ -9,7 +9,7 @@ function cheat
     echo "  ~      返回主目录"
     echo "  l      详细列表 (ls -la)"
     echo "  ll     长列表 (ls -l)"
-    echo "  la     显示隐藏文件"
+    echo "  la     同 l (ls -la)"
     echo "  lt     按时间排序"
     echo "  cd     zoxide 智能跳转 (需安装 zoxide)"
     echo

@@ -92,7 +92,8 @@ fastfetch --config ~/.config/fastfetch/config.jsonc
 fastfetch --config ~/.config/fastfetch/config.jsonc --debug
 
 # 3. 临时禁用 Fastfetch
-# 编辑 fish/.config/fish/conf.d/20-startup.fish，注释掉 fish_greeting 中的 fastfetch 调用
+# 卸载即自动回退 (配置有 type -q 保护，无报错)；或注释掉
+# fish/.config/fish/conf.d/20-startup.fish 中 fish_greeting 的 fastfetch 调用
 ```
 
 ---
@@ -180,7 +181,7 @@ chsh -s bash
 ### 重新链接所有包
 
 ```bash
-cd (dot path)
+cd "$(dot path)"
 stow -R -t ~ bin fish fastfetch termux
 ```
 
@@ -191,7 +192,7 @@ stow -R -t ~ bin fish fastfetch termux
 chsh -s bash
 
 # 2. 取消所有链接
-cd (dot path)
+cd "$(dot path)"
 stow -D -t ~ bin fish fastfetch termux
 
 # 3. 删除仓库（可选）

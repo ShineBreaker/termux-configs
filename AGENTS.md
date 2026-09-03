@@ -220,7 +220,7 @@ dot status        # 检查链接状态 (已链接/未链接/冲突)
 dot add <包>      # 添加新包 (交互式)
 ```
 
-添加新配置包后，如果仓库新增了不参与 Stow 的顶层目录，需把它加入 `bin/.local/bin/dot` 的 `NON_PACKAGES` 数组。
+添加新配置包后，如果仓库新增了不参与 Stow 的顶层目录，需把它加入 `bin/.local/bin/dot` 与 `setup.sh` 的 `NON_PACKAGES` 数组。
 
 ### setup.sh 子命令
 

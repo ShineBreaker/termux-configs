@@ -71,7 +71,7 @@ termux-reload-settings
 │   └── .config/fish/
 │       ├── config.fish     # 主配置入口 (说明见文件内注释)
 │       ├── conf.d/         # 按功能拆分的配置片段
-│       │   ├── 00-init.fish      # 工具集成 (zoxide / starship)
+│       │   ├── 00-init.fish      # 工具集成 (zoxide / starship / fzf)
 │       │   ├── 05-env.fish       # 环境变量与 PATH
 │       │   ├── 20-startup.fish   # 欢迎消息与提示符
 │       │   └── 99-abbr.fish      # 移动友好缩写
@@ -126,9 +126,9 @@ termux-reload-settings
 | `~` | 返回主目录 |
 | `l` | 详细列表 (ls -la) |
 | `ll` | 长列表 (ls -l) |
-| `la` | 显示隐藏文件 |
+| `la` | 同 l (ls -la) |
 | `lt` | 按时间排序列表 |
-| `cd` | zoxide 智能跳转 |
+| `cd` | zoxide 智能跳转 (已安装 zoxide 时) |
 
 ### 包管理
 | 命令 | 说明 |
@@ -164,7 +164,7 @@ termux-reload-settings
 | `fishrc` | 编辑 Fish 配置入口 |
 | `termuxrc` | 编辑 Termux 配置 |
 
-编辑命令使用 `$EDITOR`（默认在 `05-env.fish` 中设为 `hx`）。
+编辑命令使用 `$EDITOR`（按 hx→nano→vi 自动降级，见 `05-env.fish`）。
 
 ### 其他
 | 命令 | 说明 |
@@ -206,7 +206,7 @@ dot list
 dot status
 
 # 添加新包
-dot add helix
+dot add nvim
 ```
 
 ### 手动使用 Stow
@@ -351,7 +351,7 @@ chsh -s bash
 dot status
 
 # 重新链接所有包
-cd (dot path)
+cd "$(dot path)"
 stow -R -t ~ bin fish fastfetch termux
 ```
 
@@ -398,7 +398,7 @@ git clone git@codeberg.org:BrokenShine/Termux-configs.git ~/dotfiles
 bash
 
 # 2. 检查配置语法 (配置拆分在 conf.d/)
-cd (dot path)
+cd "$(dot path)"
 fish -n fish/.config/fish/conf.d/*.fish
 
 # 3. 修复错误后重启 Fish

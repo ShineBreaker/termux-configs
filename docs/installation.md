@@ -34,7 +34,7 @@ bash setup.sh
 
 ```bash
 # 1. 安装依赖
-pkg install -y git stow fish fastfetch
+pkg install -y git stow fish fastfetch oma
 
 # 2. 克隆仓库 (任意目录)
 git clone https://codeberg.org/BrokenShine/Termux-configs.git ~/dotfiles

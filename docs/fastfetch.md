@@ -116,4 +116,4 @@ fastfetch --config ~/.config/fastfetch/config.jsonc --debug
 
 ### 临时禁用
 
-编辑 `fish/.config/fish/conf.d/20-startup.fish`，注释掉 `fish_greeting` 中的 fastfetch 调用。
+卸载 fastfetch 后启动问候会自动回退（`20-startup.fish` 中有 `type -q` 保护，未安装时无报错）。如需保留 fastfetch 但关闭启动显示，可编辑 `fish/.config/fish/conf.d/20-startup.fish`，注释掉 `fish_greeting` 中的 fastfetch 调用。

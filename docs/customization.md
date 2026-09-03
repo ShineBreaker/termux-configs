@@ -18,7 +18,7 @@ fishrc
 
 | 文件 | 功能 |
 |------|------|
-| `conf.d/00-init.fish` | 工具集成 (zoxide / starship) |
+| `conf.d/00-init.fish` | 工具集成 (zoxide / starship / fzf) |
 | `conf.d/05-env.fish` | 环境变量与 PATH |
 | `conf.d/20-startup.fish` | 欢迎消息与提示符 |
 | `conf.d/99-abbr.fish` | 移动友好缩写 |

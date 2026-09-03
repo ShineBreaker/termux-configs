@@ -34,7 +34,7 @@ dot list
 dot status
 
 # 添加新包
-dot add helix
+dot add nvim
 ```
 
 ---
@@ -72,29 +72,29 @@ stow -R -t ~ <package>
 
 ```bash
 # 创建新包结构
-dot add helix
+dot add nvim
 
 # 这将创建：
-# helix/
+# nvim/
 # └── .config/
-#     └── helix/
+#     └── nvim/
 ```
 
 ### 手动创建
 
 1. 在仓库根目录创建包目录：
    ```bash
-   mkdir -p helix/.config/helix
+   mkdir -p nvim/.config/nvim
    ```
 
 2. 将配置文件移动到包目录：
    ```bash
-   mv ~/.config/helix/config.toml helix/.config/helix/
+   mv ~/.config/nvim/config.toml nvim/.config/nvim/
    ```
 
 3. 创建链接：
    ```bash
-   dot stow helix
+   dot stow nvim
    ```
 
 ---
@@ -113,7 +113,7 @@ dot status
 ## 🔄 重新链接所有包
 
 ```bash
-cd (dot path)
+cd "$(dot path)"
 stow -R -t ~ bin fish fastfetch termux
 ```
 
