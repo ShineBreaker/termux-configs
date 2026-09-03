@@ -2,7 +2,7 @@
 
 本文档介绍如何修改和自定义 dotfiles 配置。
 
-> 所有示例中 `dot cd` 进入仓库；编辑命令使用 `$EDITOR`（默认 `hx`，可在 `conf.d/05-env.fish` 中修改）。
+> 所有示例中 `dot cd` 进入仓库；编辑命令使用 `$EDITOR`（按 hx→nano→vi 自动降级，见 `conf.d/05-env.fish`）。
 
 ---
 
@@ -48,6 +48,8 @@ termux-reload-settings
 ```
 
 ### 快捷键栏配置格式
+
+当前使用 Termux 默认键栏，以下为自定义示例：
 
 ```properties
 extra-keys = [['ESC','/','-','HOME','UP','END','PGUP'], \

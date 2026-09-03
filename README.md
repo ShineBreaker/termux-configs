@@ -9,7 +9,7 @@
 | 特性 | 说明 |
 |------|------|
 | 🐟 **Fish Shell** | 现代化 Shell，自动补全、语法高亮、智能提示 |
-| ⌨️ **快捷键栏** | 两行手机优化的快捷键布局 |
+| ⌨️ **快捷键栏** | Termux 默认快捷键栏，仅微调样式选项 |
 | 📊 **Fastfetch** | 启动显示系统信息，小屏可用紧凑模式 |
 | ⚡ **快捷命令** | 大量缩写命令，减少移动端输入负担 |
 | 🔧 **Stow 管理** | 使用 GNU Stow 管理配置，易于维护和同步 |
@@ -86,7 +86,7 @@ termux-reload-settings
 │       └── config-compact.jsonc  # 紧凑模式
 ├── termux/                 # Termux 应用配置
 │   └── .termux/
-│       ├── termux.properties     # 应用设置与快捷键栏
+│       ├── termux.properties     # 应用设置
 │       ├── colors.properties     # 颜色主题
 │       └── font.ttf              # 自定义字体
 ├── setup.sh                # 一键安装脚本
@@ -110,11 +110,9 @@ termux-reload-settings
 
 ## ⌨️ 快捷键栏
 
-配置了两行手机优化的快捷键：
+使用 Termux 默认单行快捷键栏，仅微调样式选项（如按键图标风格、按钮文字大小写）。
 
-**第一行**：`ESC` `/` `-` `HOME` `↑` `END` `PGUP`
-
-**第二行**：`TAB` `CTRL` `ALT` `←` `↓` `→` `PGDN`
+如需自定义按键布局，可参考 Termux wiki 的 extra-keys 配置：https://wiki.termux.com/wiki/Touch_Keyboard
 
 ---
 
@@ -300,9 +298,8 @@ git push
 
 1. **自动补全**：输入命令时按 `TAB` 键
 2. **历史搜索**：按 `↑` 键搜索历史命令
-3. **手势操作**：在快捷键栏上滑动可显示更多选项
-4. **长按复制**：长按终端文本可复制
-5. **音量键**：音量+ 是 Ctrl，音量- 是 Alt
+3. **长按复制**：长按终端文本可复制
+4. **音量键**：音量+ 是 Ctrl，音量- 是 Alt
 
 ---
 

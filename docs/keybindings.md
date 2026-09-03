@@ -1,16 +1,14 @@
 # 快捷键与命令
 
-本文档介绍 Termux 快捷键栏布局和 Fish Shell 的快捷命令。
+本文档介绍 Termux 快捷键栏和 Fish Shell 的快捷命令。
 
 ---
 
 ## ⌨️ 快捷键栏
 
-配置了两行手机优化的快捷键：
+使用 Termux 默认单行快捷键栏，仅微调样式选项（如按键图标风格、按钮文字大小写）。
 
-**第一行**：`ESC` `/` `-` `HOME` `↑` `END` `PGUP`
-
-**第二行**：`TAB` `CTRL` `ALT` `←` `↓` `→` `PGDN`
+如需自定义按键布局，可参考 Termux wiki 的 extra-keys 配置：https://wiki.termux.com/wiki/Touch_Keyboard
 
 ---
 
@@ -62,7 +60,7 @@
 | `fishrc` | 编辑 Fish 配置入口 |
 | `termuxrc` | 编辑 Termux 配置 |
 
-编辑命令使用 `$EDITOR`（默认在 `05-env.fish` 中设为 `hx`）。
+编辑命令使用 `$EDITOR`（按 hx→nano→vi 自动降级，见 `05-env.fish`）。
 
 ### 其他
 | 命令 | 说明 |

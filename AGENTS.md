@@ -11,7 +11,7 @@
 本项目是一个基于 GNU Stow 管理的 Termux 配置文件仓库，可通过 Git 克隆快速部署。主要优化方向包括：
 
 - **Shell 迁移**: 从 Bash 迁移到 Fish，获得更好的交互体验
-- **快捷键栏**: 配置适合手机屏幕的快捷键布局
+- **快捷键栏**: 使用 Termux 默认键栏，仅微调样式选项
 - **系统信息**: 集成 Fastfetch，小屏可用紧凑模式
 - **快捷命令**: 提供大量缩写命令，减少移动端输入负担
 - **可复现部署**: 通过 Git + Stow 实现配置的可迁移和可复现
@@ -60,7 +60,7 @@
 │       └── config-compact.jsonc  # 紧凑显示配置
 ├── termux/                   # Termux 配置包
 │   └── .termux/
-│       ├── termux.properties     # 应用设置 (快捷键栏等)
+│       ├── termux.properties     # 应用设置
 │       ├── colors.properties     # 颜色主题
 │       └── font.ttf              # 自定义字体
 ├── setup.sh                  # 安装脚本 (install/export/full 子命令)
@@ -151,7 +151,7 @@ type -q starship; and starship init fish | source
 |------|----------------|
 | 新缩写 | `cheat.fish`、`docs/keybindings.md`、`README.md` 命令表 |
 | 新函数 | `cheat.fish`、`docs/keybindings.md`、`README.md` |
-| 新配置包 | `setup.sh` 的 `PACKAGES`、`README.md`、`docs/index.md`、`dot` 脚本（如需排除非包目录） |
+| 新配置包 | `README.md`、`docs/index.md`（`setup.sh` 已动态发现配置包，无需维护包列表；新增不参与 Stow 的顶层目录需同时加入 `setup.sh` 与 `bin/.local/bin/dot` 的 `NON_PACKAGES`） |
 | 快捷键栏 | `docs/keybindings.md`、`README.md` |
 | 安装流程 | `README.md`、`docs/installation.md`、`setup.sh` 帮助文本 |
 
@@ -200,6 +200,8 @@ end
 修改后: `dot restow fastfetch`，测试 `fastfetch --config ~/.config/fastfetch/config.jsonc`
 
 ### 修改 Termux 快捷键栏
+
+当前使用 Termux 默认快捷键栏，`extra-keys` 未自定义。如需自定义：
 
 1. 编辑 `termux/.termux/termux.properties` 的 `extra-keys`
 2. `dot restow termux`
