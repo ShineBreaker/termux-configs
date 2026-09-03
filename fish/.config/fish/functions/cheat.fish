@@ -39,8 +39,8 @@ function cheat
     echo (set_color normal)"  c      清屏"
     echo "  q      退出"
     echo "  h      历史记录"
-    echo "  update 更新系统"
-    echo "  termux-reload  重载设置"
+    echo "  update 更新系统 (函数)"
+    echo "  termux-reload  重载设置 (函数)"
     echo
     echo (set_color yellow)"📝 编辑配置:"
     echo (set_color normal)"  fishrc     编辑 Fish 配置"
@@ -48,6 +48,7 @@ function cheat
     echo
     echo (set_color yellow)"📦 Dotfiles 管理:"
     echo (set_color normal)"  dot cd              进入 dotfiles 目录"
+    echo "  dot path            输出仓库路径"
     echo "  dot stow <包>       链接配置包"
     echo "  dot unstow <包>     取消链接"
     echo "  dot restow <包>     重新链接"
