@@ -27,7 +27,7 @@
 pkg install git stow fish
 
 # 2. 克隆仓库到任意目录 (此处以 ~/dotfiles 为例)
-git clone https://codeberg.org/BrokenShine/Termux-configs.git ~/dotfiles
+git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 
 # 3. 运行安装脚本
 cd ~/dotfiles
@@ -44,7 +44,7 @@ bash setup.sh
 pkg install -y git stow fish fastfetch
 
 # 2. 克隆仓库 (任意目录)
-git clone https://codeberg.org/BrokenShine/Termux-configs.git ~/dotfiles
+git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 cd ~/dotfiles
 
 # 3. 链接所有配置包
@@ -310,7 +310,7 @@ git push
 pkg install git stow fish
 
 # 2. 克隆仓库 (任意目录)
-git clone https://codeberg.org/BrokenShine/Termux-configs.git ~/dotfiles
+git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 
 # 3. 运行安装脚本
 cd ~/dotfiles
@@ -401,10 +401,10 @@ pkg install stow
 
 ```bash
 # 检查网络连接
-ping codeberg.org
+ping github.com
 
 # 使用 SSH 克隆（需要配置密钥）
-git clone git@codeberg.org:BrokenShine/Termux-configs.git ~/dotfiles
+git clone git@github.com:ShineBreaker/termux-configs.git ~/dotfiles
 ```
 
 ### Fish 配置错误

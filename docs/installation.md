@@ -20,7 +20,7 @@
 pkg install git stow fish
 
 # 2. 克隆仓库到任意目录 (此处以 ~/dotfiles 为例)
-git clone https://codeberg.org/BrokenShine/Termux-configs.git ~/dotfiles
+git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 
 # 3. 运行安装脚本 (脚本自动定位自身所在目录)
 cd ~/dotfiles
@@ -37,7 +37,7 @@ bash setup.sh
 pkg install -y git stow fish fastfetch oma
 
 # 2. 克隆仓库 (任意目录)
-git clone https://codeberg.org/BrokenShine/Termux-configs.git ~/dotfiles
+git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 cd ~/dotfiles
 
 # 3. 链接所有配置包
@@ -61,7 +61,7 @@ termux-reload-settings
 pkg install git stow fish
 
 # 2. 克隆仓库 (任意目录)
-git clone https://codeberg.org/BrokenShine/Termux-configs.git ~/dotfiles
+git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 
 # 3. 运行安装脚本
 cd ~/dotfiles

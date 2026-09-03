@@ -159,13 +159,13 @@ ls -la ~/.local/bin/dot
 **解决**:
 ```bash
 # 1. 检查网络连接
-ping codeberg.org
+ping github.com
 
 # 2. 安装 Git
 pkg install git
 
 # 3. 使用 SSH 克隆（需要配置密钥）
-git clone git@codeberg.org:BrokenShine/Termux-configs.git ~/dotfiles
+git clone git@github.com:ShineBreaker/termux-configs.git ~/dotfiles
 ```
 
 ---
