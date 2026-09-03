@@ -44,11 +44,10 @@
 │   └── .config/fish/
 │       ├── config.fish       # 主配置入口 (说明性注释)
 │       ├── conf.d/           # 按功能拆分的配置片段 (按文件名顺序加载)
-│       │   ├── 00-init.fish      # 工具集成 (zoxide / starship，已安装则启用)
+│       │   ├── 00-init.fish      # 工具集成 (zoxide / starship / fzf，已安装则启用)
 │       │   ├── 05-env.fish       # 环境变量与 PATH
 │       │   ├── 20-startup.fish   # fish_greeting (fastfetch) 与提示符
 │       │   └── 99-abbr.fish      # 移动友好缩写
-│       ├── fish_variables    # Fish 变量存储 (自动生成)
 │       └── functions/        # 自定义函数
 │           ├── cheat.fish        # 命令参考显示
 │           ├── dot.fish          # dot 命令 (cd 本地处理，其余转发给 ~/.local/bin/dot)

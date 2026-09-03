@@ -321,6 +321,22 @@ bash setup.sh
 
 ---
 
+## ⬆️ 更新已部署设备
+
+```bash
+dot cd          # 进入仓库
+git pull        # 拉取最新配置
+dot list        # 查看包链接状态
+
+# 重新链接全部包 (配置文件有变动时)
+stow -R -t ~ bin fish fastfetch termux
+```
+
+若拉取的更新移除了 `termux/.termux/shell`（默认 shell 标记已不再入库），
+重启后回到 bash 时执行 `chsh -s fish` 恢复，或重跑 `bash setup.sh`。
+
+---
+
 ## 🆘 故障排除
 
 ### Fish 没有启动

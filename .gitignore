@@ -3,3 +3,6 @@
 
 # Termux 运行时生成的 shell 标记文件（经折叠链接落到仓库内，不入库）
 termux/.termux/shell
+
+# fish 运行时写入的 universal 变量（同样经折叠链接落到仓库内，不入库）
+fish/.config/fish/fish_variables

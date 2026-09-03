@@ -11,3 +11,7 @@ docs/
 # 软件列表文件
 packages.txt
 pkglist.txt
+
+# 运行时生成文件（不入库，也不分发到 $HOME）
+shell
+fish_variables
