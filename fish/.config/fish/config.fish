@@ -5,7 +5,3 @@
 #   20-startup.fish 欢迎消息与提示符
 #   99-abbr.fish    移动友好缩写
 # 自定义函数在 functions/ 目录。
-
-if status is-interactive
-# Commands to run in interactive sessions can go here
-end

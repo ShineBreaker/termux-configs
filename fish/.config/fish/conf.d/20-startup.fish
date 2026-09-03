@@ -13,11 +13,12 @@ function fish_prompt
     set -l last_status $status
     set -l cwd (prompt_pwd)
 
-    # 状态颜色
+    # 状态颜色 (须在块外声明，块内的 set -l 会在 end 之后失效)
+    set -l status_color
     if test $last_status -eq 0
-        set -l status_color (set_color green)
+        set status_color (set_color green)
     else
-        set -l status_color (set_color red)
+        set status_color (set_color red)
     end
 
     # 显示提示符

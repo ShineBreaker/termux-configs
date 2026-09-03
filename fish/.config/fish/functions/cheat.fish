@@ -11,6 +11,7 @@ function cheat
     echo "  ll     长列表 (ls -l)"
     echo "  la     显示隐藏文件"
     echo "  lt     按时间排序"
+    echo "  cd     zoxide 智能跳转 (需安装 zoxide)"
     echo
     echo (set_color yellow)"📦 包管理:"
     echo (set_color normal)"  pkgi   安装包"
@@ -19,7 +20,8 @@ function cheat
     echo "  pkgl   列出已安装"
     echo
     echo (set_color yellow)"🔀 Git:"
-    echo (set_color normal)"  gs     git status"
+    echo (set_color normal)"  g      git"
+    echo "  gs     git status"
     echo "  ga     git add"
     echo "  gc     git commit"
     echo "  gp     git push"
