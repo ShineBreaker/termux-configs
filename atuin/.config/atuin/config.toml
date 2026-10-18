@@ -1,0 +1,40 @@
+# Atuin 配置 — Termux 移动端适配
+# 文档: https://docs.atuin.sh/configuration/
+# 作用: 用 SQLite 保存命令历史，Ctrl-R 或 ↑ 触发模糊搜索，弥补手机输入成本高的问题
+
+# 仅本地历史，不启用同步账户
+auto_sync = false
+
+# daemon-fuzzy 更顺滑但需常驻进程；移动端为省电用纯模糊搜索
+search_mode = "fuzzy"
+# 默认先按当前目录过滤，再按全局；手机上跨目录找旧命令更实用
+filter_mode = "global"
+# 取消搜索后恢复原来的命令行
+exit_mode = "return-original"
+
+# 过滤含密钥/令牌的命令，避免写入历史
+secrets_filter = true
+history_filter = [
+    "^cat",
+    "^zcat",
+]
+
+style = "compact"
+# 回车先选中、再次回车才执行，降低手机误触执行的概率
+enter_accept = false
+
+[keys]
+scroll_exits = true
+
+[preview]
+strategy = "auto"
+
+[search]
+filters = ["global", "host", "session", "directory"]
+
+[stats]
+common_prefix = ["pkg", "oma", "git", "just"]
+ignored_commands = ["cd", "ls", "cat", "bat", "echo", "zcat"]
+
+[ai]
+enabled = false

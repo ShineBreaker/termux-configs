@@ -22,6 +22,11 @@ starship
 zoxide
 fzf
 zellij
+atuin
+eza
+bat
+dust
+fd
 fastfetch
 stow
 oma
