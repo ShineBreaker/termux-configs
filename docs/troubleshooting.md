@@ -55,7 +55,7 @@ fish --version
 
 ### Fish 没有继承 Bash 环境
 
-**症状**: 在 `~/.profile` 中导出的变量在 Fish 里看不到
+**症状**: 在用户 profile (`~/.bash_profile`/`~/.bash_login`/`~/.profile`) 中导出的变量在 Fish 里看不到
 
 **解决**:
 ```bash
@@ -65,7 +65,11 @@ fish -c 'type -q fenv; and echo 正常; or echo 缺失'
 # 2. 检查 foreign-env 插件是否存在
 ls "$HOME/.local/share/omf/pkg/foreign-env"
 
-# 3. 缺失时重跑完整安装，自动补装 Oh My Fish 与 foreign-env
+# 3. 确认用户 profile 存在 (bash 登录按顺序取第一个:
+#    ~/.bash_profile > ~/.bash_login > ~/.profile)
+ls ~/.bash_profile ~/.bash_login ~/.profile
+
+# 4. 缺失时重跑完整安装，自动补装 Oh My Fish 与 foreign-env
 bash setup.sh
 ```
 

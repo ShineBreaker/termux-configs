@@ -103,4 +103,4 @@ bash setup.sh
 - **Starship 提示符**: `pkg install starship`，安装后自动接管提示符；未安装时使用内置简版提示符
 - **zoxide 智能跳转**: `pkg install zoxide`，安装后 `cd` 自动变为智能跳转
 - **fzf 模糊查找**: `pkg install fzf`
-- **Bash 环境继承**: 安装脚本自动装好 Oh My Fish + [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时通过 `fenv source ~/.profile` 导入 Bash 环境（见 `conf.d/zz-bash-env.fish`）
+- **Bash 环境继承**: 安装脚本自动装好 Oh My Fish + [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时通过 `fenv` 按 bash 优先级（`~/.bash_profile` → `~/.bash_login` → `~/.profile`）导入用户环境（见 `conf.d/zz-bash-env.fish`）

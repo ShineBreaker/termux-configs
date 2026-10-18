@@ -9,7 +9,7 @@
 | 特性 | 说明 |
 |------|------|
 | 🐟 **Fish Shell** | 现代化 Shell，自动补全、语法高亮、智能提示 |
-| 🧬 **Bash 环境继承** | 登录 Fish 时自动导入 Bash 环境 (`~/.profile`)，无需手动 source |
+| 🧬 **Bash 环境继承** | 登录 Fish 时按 bash 优先级导入用户 profile (`~/.bash_profile` → `~/.bash_login` → `~/.profile`) |
 | ⌨️ **快捷键栏** | Termux 默认快捷键栏，仅微调样式选项 |
 | 📊 **Fastfetch** | 启动显示系统信息，小屏可用紧凑模式 |
 | ⚡ **快捷命令** | 大量缩写命令，减少移动端输入负担 |
@@ -312,7 +312,7 @@ git push
 - **Starship 提示符**: `pkg install starship`，安装后自动接管提示符；未安装时使用内置简版提示符
 - **zoxide 智能跳转**: `pkg install zoxide`，安装后 `cd` 自动变为智能跳转
 - **fzf 模糊查找**: `pkg install fzf`
-- **Bash 环境继承**: 安装脚本自动装好 [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish) 与 [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时用 `fenv source ~/.profile` 导入 Bash 环境（见 `conf.d/zz-bash-env.fish`），未安装时静默跳过
+- **Bash 环境继承**: 安装脚本自动装好 [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish) 与 [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时用 `fenv` 按 bash 优先级依次尝试 `~/.bash_profile`/`~/.bash_login`/`~/.profile` 导入用户环境（系统级环境已由 Termux 自身提供），未安装时静默跳过（见 `conf.d/zz-bash-env.fish`）
 
 ---
 
@@ -458,6 +458,9 @@ fastfetch --config ~/.config/fastfetch/config.jsonc --debug
 ```bash
 # 检查 fenv 是否可用
 fish -c 'type -q fenv; and echo 正常; or echo 缺失'
+
+# 确认用户 profile 存在 (bash 登录按顺序取第一个: ~/.bash_profile > ~/.bash_login > ~/.profile)
+ls ~/.bash_profile ~/.bash_login ~/.profile
 
 # 缺失时重跑完整安装，自动补装 Oh My Fish 与 foreign-env
 bash setup.sh

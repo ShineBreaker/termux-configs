@@ -1,6 +1,6 @@
 # Termux 优化配置项目 - AI Agent 工作指引
 
-> **版本**: 3.2  
+> **版本**: 3.3  
 > **最后更新**: 2026-10-18  
 > **项目目标**: 为 Android Termux 环境提供优化的 Fish Shell 配置，提升移动端终端使用体验
 
@@ -215,8 +215,16 @@ end
 ### Fish 继承 Bash 环境 (Oh My Fish + fenv)
 
 **机制**: `setup.sh` 自动安装 Oh My Fish（fish 插件管理器）与 `foreign-env` 插件；
-后者提供 `fenv` 命令，`conf.d/zz-bash-env.fish` 在登录会话中执行
-`fenv source ~/.profile`，把 Bash 登录环境导入 Fish。
+后者提供 `fenv` 命令，`conf.d/zz-bash-env.fish` 在登录会话中按 bash 优先级
+（`~/.bash_profile` → `~/.bash_login` → `~/.profile`）执行 `fenv source`，
+把 Bash 用户登录环境导入 Fish。
+
+**范围**:
+
+- 系统级环境无需继承：`login` 脚本已导出 `PREFIX`/`TMPDIR`/`LD_PRELOAD`，
+  `$PREFIX/etc/fish/conf.d/start-services.fish` 已提供 `SVDIR`/`LOGDIR`。
+- `~/.bashrc` 不导入：它是交互式 bash 配置，而 `fenv` 以非交互方式执行
+  （通常会被 .bashrc 顶部的交互判断提前 return）；需让 Fish 继承的变量请放进登录 profile。
 
 **维护注意**:
 
@@ -347,7 +355,11 @@ fish -c 'type -q fenv; and echo 正常; or echo 缺失'
 # 2. 检查 foreign-env 插件是否存在
 ls "$HOME/.local/share/omf/pkg/foreign-env"
 
-# 3. 缺失时重跑完整安装，自动补装 Oh My Fish 与 foreign-env
+# 3. 确认用户 profile 存在 (bash 登录按顺序取第一个:
+#    ~/.bash_profile > ~/.bash_login > ~/.profile)
+ls ~/.bash_profile ~/.bash_login ~/.profile
+
+# 4. 缺失时重跑完整安装，自动补装 Oh My Fish 与 foreign-env
 bash setup.sh
 ```
 
@@ -408,6 +420,7 @@ fastfetch --debug         # 调试模式
 | 2026-08-14 | 3.0 | 移除 Doom Emacs；脚本位置无关化；dot 命令单一实现；文档对齐仓库现实 |
 | 2026-10-18 | 3.1 | 新增 justfile 一键指令（setup/install-emacs/restow 等）；setup.sh 自动安装 just |
 | 2026-10-18 | 3.2 | Fish 经 Oh My Fish + foreign-env (fenv) 继承 Bash 登录环境；setup.sh 自动安装 OMF 与插件，packages.txt 补充 which |
+| 2026-10-18 | 3.3 | fenv 按 bash 登录优先级继承用户 profile (`~/.bash_profile` → `~/.bash_login` → `~/.profile`)；确认系统级环境由 Termux fish 包自身提供 |
 
 ---
 
