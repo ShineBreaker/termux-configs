@@ -1,0 +1,24 @@
+# Helix 语言配置 — 只启用 Termux 上已可用的 formatter
+# 文档: https://docs.helix-editor.com/languages.html
+# 其余语言的 formatter / language-server 可按需追加 (未安装时格式化会报错)
+
+[[language]]
+name = "fish"
+auto-format = true
+formatter = { command = "fish_indent" }
+
+[[language]]
+name = "c"
+auto-format = true
+formatter = { command = "clang-format", args = [
+  "-style=file",
+  "-assume-filename=%{buffer_name}",
+] }
+
+[[language]]
+name = "cpp"
+auto-format = true
+formatter = { command = "clang-format", args = [
+  "-style=file",
+  "-assume-filename=%{buffer_name}",
+] }
