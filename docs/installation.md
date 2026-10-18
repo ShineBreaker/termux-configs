@@ -34,7 +34,7 @@ bash setup.sh
 
 ```bash
 just setup          # 完整安装
-just install-emacs  # 安装 Emacs 配置 (UniEmacs)，见 UniEmacs docs/mobile
+just install-emacs  # 安装 Emacs 配置 (UniEmacs)：clone 仓库、部署原生 Emacs 入口、预装字体并在 Termux 预构建插件，见 UniEmacs docs/mobile
 just restow         # 修改配置后重新链接
 ```
 
@@ -49,7 +49,7 @@ git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 cd ~/dotfiles
 
 # 3. 链接所有配置包
-stow -t ~ bin fish fastfetch termux
+stow -t ~ bin fish fastfetch starship atuin git helix termux
 
 # 4. 安装 Oh My Fish 与 foreign-env（让 Fish 继承 Bash 环境）
 #    先下载安装器再执行，才能传入非交互参数
@@ -100,7 +100,11 @@ bash setup.sh
 
 工具遵循"已安装则自动启用"的原则（见 `fish/.config/fish/conf.d/00-init.fish`）：
 
-- **Starship 提示符**: `pkg install starship`，安装后自动接管提示符；未安装时使用内置简版提示符
+- **Starship 提示符**: `pkg install starship`，安装后自动接管提示符，使用仓库内 `starship/.config/starship.toml` 小屏优化配置；未安装时使用内置简版提示符
 - **zoxide 智能跳转**: `pkg install zoxide`，安装后 `cd` 自动变为智能跳转
 - **fzf 模糊查找**: `pkg install fzf`
+- **Atuin 历史搜索**: `pkg install atuin`，安装后 Ctrl-R / ↑ 弹出模糊搜索（排在 fzf 之后接管）
+- **现代 CLI 别名**: `pkg install eza bat dust fd`（ripgrep 已内置），装上后 `ls/cat/du/find/grep` 自动替换为现代工具，见 `conf.d/10-aliases.fish`
+- **Helix 编辑器**: 已随 `packages.txt` 安装，配置启用触摸定位光标、失焦自动保存等移动端友好项
+- **Git 规范**: 链接 `git` 包后全局启用 Conventional Commits 提交模板、常用别名与全局忽略（不含 user.name/email）
 - **Bash 环境继承**: 安装脚本自动装好 Oh My Fish + [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时通过 `fenv` 按 bash 优先级（`~/.bash_profile` → `~/.bash_login` → `~/.profile`）导入用户环境（见 `conf.d/zz-bash-env.fish`）

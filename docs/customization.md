@@ -18,10 +18,12 @@ fishrc
 
 | 文件 | 功能 |
 |------|------|
-| `conf.d/00-init.fish` | 工具集成 (zoxide / starship / fzf) |
+| `conf.d/00-init.fish` | 工具集成 (zoxide / starship / fzf / atuin) |
 | `conf.d/05-env.fish` | 环境变量与 PATH |
+| `conf.d/10-aliases.fish` | 现代 CLI 别名 (eza / bat / dust / fd / rg) |
 | `conf.d/20-startup.fish` | 欢迎消息与提示符 |
 | `conf.d/99-abbr.fish` | 移动友好缩写 |
+| `functions/` | 自定义函数 (含 `retry`) |
 
 ### 方式二：直接编辑仓库文件
 
@@ -119,6 +121,26 @@ $EDITOR fastfetch/.config/fastfetch/config.jsonc
 ```bash
 dot restow fastfetch
 ```
+
+---
+
+## 🖊️ 自定义 Helix
+
+| 文件 | 作用 |
+|------|------|
+| `config.toml` | 编辑器行为 (鼠标、自动保存、状态栏等) |
+| `languages.toml` | formatter / language-server (默认 fish/clang) |
+| `themes/transparent.toml` | 透明背景主题，继承内置 `base16_transparent` |
+
+```bash
+helixrc              # 打开主配置
+$EDITOR $(dot path)/helix/.config/helix/languages.toml
+$EDITOR $(dot path)/helix/.config/helix/themes/transparent.toml
+
+dot restow helix     # 重新链接
+```
+
+Helix 在启动时读取配置，改完重开 `hx` 即生效。
 
 ---
 

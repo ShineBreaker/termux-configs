@@ -12,6 +12,11 @@
 |------|------|
 | 🐟 **Fish Shell** | 现代化 Shell，自动补全、语法高亮、智能提示 |
 | 🧬 **Bash 环境继承** | 登录 Fish 时按 bash 优先级导入用户 profile (`~/.bash_profile` → `~/.bash_login` → `~/.profile`) |
+| 🔎 **历史搜索** | Atuin 保存命令历史，Ctrl-R / ↑ 模糊搜索 |
+| 🛠️ **现代 CLI** | eza / bat / dust / fd / rg 别名，装了对应包自动启用 |
+| 💅 **精致提示符** | Starship 单行提示符，小屏不浪费行宽 |
+| 📝 **Helix 编辑器** | 移动端友好配置，支持触摸点击定位光标；透明主题跟随终端背景 |
+| 📐 **Git 规范** | Conventional Commits 提交模板 + 常用别名 |
 | ⌨️ **快捷键栏** | Termux 默认快捷键栏，仅微调样式选项 |
 | 📊 **Fastfetch** | 启动显示系统信息，小屏可用紧凑模式 |
 | ⚡ **快捷命令** | 大量缩写命令，减少移动端输入负担 |
@@ -27,6 +32,11 @@
 ├── bin/                    # dot 管理命令 → ~/.local/bin/dot
 ├── fish/                   # Fish Shell 配置 → ~/.config/fish/
 ├── fastfetch/              # Fastfetch 配置 → ~/.config/fastfetch/
+├── starship/               # Starship 提示符配置 → ~/.config/starship.toml
+├── atuin/                  # Atuin 命令历史配置 → ~/.config/atuin/
+├── git/                    # Git 全局配置 → ~/.config/git/
+├── helix/                  # Helix 编辑器配置 → ~/.config/helix/
+│   └── .config/helix/      #   config.toml + languages.toml + themes/transparent.toml
 ├── termux/                 # Termux 应用配置 → ~/.termux/
 ├── setup.sh                # 一键安装脚本
 ├── justfile                # just 一键指令 (setup/install-emacs/restow ...)
@@ -41,6 +51,10 @@
 | `bin` | `dot` 管理命令 | `~/.local/bin/dot` |
 | `fish` | Fish shell 配置 | `~/.config/fish/` |
 | `fastfetch` | 系统信息显示配置 | `~/.config/fastfetch/` |
+| `starship` | Starship 提示符配置 | `~/.config/starship.toml` |
+| `atuin` | 命令历史搜索配置 | `~/.config/atuin/` |
+| `git` | Git 全局配置 (不含身份) | `~/.config/git/` |
+| `helix` | Helix 编辑器配置 | `~/.config/helix/` |
 | `termux` | Termux 应用设置 | `~/.termux/` |
 
 ## 📚 文档导航

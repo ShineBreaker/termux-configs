@@ -10,6 +10,11 @@
 |------|------|
 | 🐟 **Fish Shell** | 现代化 Shell，自动补全、语法高亮、智能提示 |
 | 🧬 **Bash 环境继承** | 登录 Fish 时按 bash 优先级导入用户 profile (`~/.bash_profile` → `~/.bash_login` → `~/.profile`) |
+| 🔎 **历史搜索** | Atuin 保存命令历史，Ctrl-R / ↑ 模糊搜索，弥补手机输入成本 |
+| 🛠️ **现代 CLI** | eza / bat / dust / fd / rg 别名，装了对应包自动启用 |
+| 💅 **精致提示符** | Starship 单行提示符，小屏不浪费行宽 |
+| 📝 **Helix 编辑器** | 移动端友好的编辑器配置，支持触摸点击定位光标 |
+| 📐 **Git 规范** | Conventional Commits 提交模板 + 常用别名 |
 | ⌨️ **快捷键栏** | Termux 默认快捷键栏，仅微调样式选项 |
 | 📊 **Fastfetch** | 启动显示系统信息，小屏可用紧凑模式 |
 | ⚡ **快捷命令** | 大量缩写命令，减少移动端输入负担 |
@@ -50,7 +55,7 @@ git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 cd ~/dotfiles
 
 # 3. 链接所有配置包
-stow -t ~ bin fish fastfetch termux
+stow -t ~ bin fish fastfetch starship atuin git helix termux
 
 # 4. 设置默认 shell
 chsh -s fish
@@ -73,20 +78,35 @@ termux-reload-settings
 │   └── .config/fish/
 │       ├── config.fish     # 主配置入口 (说明见文件内注释)
 │       ├── conf.d/         # 按功能拆分的配置片段
-│       │   ├── 00-init.fish      # 工具集成 (zoxide / starship / fzf)
+│       │   ├── 00-init.fish      # 工具集成 (zoxide / starship / fzf / atuin)
 │       │   ├── 05-env.fish       # 环境变量与 PATH
+│       │   ├── 10-aliases.fish   # 现代 CLI 别名 (eza / bat / dust / fd / rg)
 │       │   ├── 20-startup.fish   # 欢迎消息与提示符
 │       │   ├── 99-abbr.fish      # 移动友好缩写
 │       │   └── zz-bash-env.fish  # 继承 Bash 登录环境 (fenv，omf 提供)
+│       ├── completions/    # 自定义补全
 │       └── functions/      # 自定义函数
 │           ├── cheat.fish        # 命令参考
 │           ├── dot.fish          # dot 命令 (转发 cd，其余给 ~/.local/bin/dot)
+│           ├── retry.fish        # 失败自动重试
+│           ├── run.fish          # 当前目录 justfile 派发
 │           ├── termux-reload.fish
 │           └── update.fish
 ├── fastfetch/              # Fastfetch 配置
 │   └── .config/fastfetch/
 │       ├── config.jsonc          # 标准模式
 │       └── config-compact.jsonc  # 紧凑模式
+├── starship/               # Starship 提示符配置
+│   └── .config/starship.toml
+├── atuin/                  # Atuin 命令历史配置
+│   └── .config/atuin/config.toml
+├── git/                    # Git 全局配置 (提交模板/别名/忽略)
+│   └── .config/git/
+├── helix/                  # Helix 编辑器配置
+│   └── .config/helix/
+│       ├── config.toml           # 编辑器行为
+│       ├── languages.toml        # formatter (fish/clang)
+│       └── themes/transparent.toml  # 透明背景主题
 ├── termux/                 # Termux 应用配置
 │   └── .termux/
 │       ├── termux.properties     # 应用设置
@@ -108,6 +128,10 @@ termux-reload-settings
 | `bin` | `dot` 管理命令 | `~/.local/bin/dot` |
 | `fish` | Fish shell 配置 | `~/.config/fish/` |
 | `fastfetch` | 系统信息显示配置 | `~/.config/fastfetch/` |
+| `starship` | Starship 提示符配置 | `~/.config/starship.toml` |
+| `atuin` | 命令历史搜索配置 | `~/.config/atuin/` |
+| `git` | Git 全局配置 (不含身份) | `~/.config/git/` |
+| `helix` | Helix 编辑器配置 | `~/.config/helix/` |
 | `termux` | Termux 应用设置 | `~/.termux/` |
 
 ---
@@ -129,10 +153,22 @@ termux-reload-settings
 | `...` | 返回上两级目录 |
 | `~` | 返回主目录 |
 | `l` | 详细列表 (ls -la) |
-| `ll` | 长列表 (ls -l) |
+| `ll` | 详细列表 (ls -la) |
 | `la` | 同 l (ls -la) |
 | `lt` | 按时间排序列表 |
 | `cd` | zoxide 智能跳转 (已安装 zoxide 时) |
+
+### 现代 CLI 别名 (装上对应包后自动启用)
+| 别名 | 对应工具 | 说明 |
+|------|----------|------|
+| `ls` | eza | 目录优先、彩色列表 (l/ll/la/lt 同步生效) |
+| `cat` | bat | 语法高亮的 cat |
+| `du` | dust | 直观的磁盘占用树 |
+| `find` | fd | 更快的文件查找 |
+| `grep` | rg | 更快的文本搜索 |
+| `catr` | cat | 绕过 bat 使用系统 cat |
+
+安全默认（与桌面一致）：`cp` / `rm` 自动加 `-i` 确认，避免误覆盖/误删。
 
 ### 包管理
 | 命令 | 说明 |
@@ -152,6 +188,10 @@ termux-reload-settings
 | `gp` | git push |
 | `gl` | git pull |
 | `gd` | git diff |
+| `cm` | git commit (打开模板) |
+| `cmall` | git commit --all |
+| `push` | git push |
+| `clone` | git clone |
 
 ### 系统信息 (Fastfetch)
 | 命令 | 说明 |
@@ -167,6 +207,11 @@ termux-reload-settings
 |------|------|
 | `fishrc` | 编辑 Fish 配置入口 |
 | `termuxrc` | 编辑 Termux 配置 |
+| `helixrc` | 编辑 Helix 配置 |
+| `starshiprc` | 编辑 Starship 提示符 |
+| `atuinrc` | 编辑 Atuin 历史搜索 |
+| `gitrc` | 编辑 Git 全局配置 |
+| `ee` | 终端内打开 Emacs (`emacsclient --tty`) |
 
 编辑命令使用 `$EDITOR`（按 hx→nano→vi 自动降级，见 `05-env.fish`）。
 
@@ -176,6 +221,9 @@ termux-reload-settings
 | `c` | 清屏 |
 | `q` | 退出 |
 | `h` | 历史记录 |
+| `enter` | SSH 登录电脑 (`tailscale ssh brokenshine@brokenshine-laptop`) |
+| `retry <命令>` | 命令失败时自动重试 (网络抖动) |
+| `run [参数]` | 运行当前目录的 justfile |
 | `update` | 更新系统 |
 | `termux-reload` | 重载 Termux 设置 |
 | `cheat` | 查看所有快捷命令 |
@@ -190,8 +238,10 @@ termux-reload-settings
 |------|------|
 | `just setup` | 完整安装：装软件 + 链接配置 + 设置 Fish |
 | `just install` | 从 packages.txt 批量安装软件 |
+| `just install-pi` | 安装/升级 Pi 编码助手（官方托管安装器） |
+| `just install-tailscale` | 安装/升级 Tailscale（bropines/tailscale-termux-cli，Android 免 root） |
 | `just export` | 导出已安装软件到 packages.txt |
-| `just install-emacs` | 安装 Emacs 配置（UniEmacs）：clone 到 `~/.config/emacs` 并补全依赖 |
+| `just install-emacs` | 安装 Emacs 配置（UniEmacs）：clone 到 `~/.config/emacs`、部署原生 Emacs 入口、预装字体并在 Termux 预构建插件 |
 | `just restow` | 重新链接所有配置包（修改配置后） |
 | `just status` | 检查所有配置包的链接状态 |
 
@@ -309,9 +359,13 @@ git push
 
 工具遵循"已安装则自动启用"的原则（见 `conf.d/00-init.fish`）：
 
-- **Starship 提示符**: `pkg install starship`，安装后自动接管提示符；未安装时使用内置简版提示符
+- **Starship 提示符**: `pkg install starship`，安装后自动接管提示符，使用仓库内 `starship/.config/starship.toml` 小屏优化配置；未安装时使用内置简版提示符
 - **zoxide 智能跳转**: `pkg install zoxide`，安装后 `cd` 自动变为智能跳转
 - **fzf 模糊查找**: `pkg install fzf`
+- **Atuin 历史搜索**: `pkg install atuin`，安装后 Ctrl-R / ↑ 弹出模糊搜索（排在 fzf 之后接管）
+- **现代 CLI 别名**: `pkg install eza bat dust fd`（ripgrep 已内置），装上后 `ls/cat/du/find/grep` 自动替换为现代工具，见 `conf.d/10-aliases.fish`
+- **Helix 编辑器**: 已随 `packages.txt` 安装，配置启用触摸定位光标、失焦自动保存等移动端友好项；主题 `transparent` 跟随终端背景，`languages.toml` 为 fish/clang 启用保存即格式化
+- **Git 规范**: 链接 `git` 包后全局启用 Conventional Commits 提交模板、常用别名与全局忽略（不含 user.name/email）
 - **Bash 环境继承**: 安装脚本自动装好 [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish) 与 [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时用 `fenv` 按 bash 优先级依次尝试 `~/.bash_profile`/`~/.bash_login`/`~/.profile` 导入用户环境（系统级环境已由 Termux 自身提供），未安装时静默跳过（见 `conf.d/zz-bash-env.fish`）
 
 ---
@@ -390,7 +444,7 @@ dot status
 
 # 重新链接所有包
 cd "$(dot path)"
-stow -R -t ~ bin fish fastfetch termux
+stow -R -t ~ bin fish fastfetch starship atuin git helix termux
 ```
 
 **链接冲突**（提示文件已存在）：

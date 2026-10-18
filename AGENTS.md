@@ -12,6 +12,10 @@
 
 - **Shell 迁移**: 从 Bash 迁移到 Fish，获得更好的交互体验
 - **环境继承**: 登录 Fish 时通过 Oh My Fish 的 foreign-env 插件 (`fenv`) 继承 Bash 环境
+- **命令历史**: Atuin 保存历史，Ctrl-R / ↑ 模糊搜索，弥补手机输入成本
+- **现代 CLI**: eza / bat / dust / fd / rg 别名，装上对应包自动启用，未装时保留原命令
+- **编辑器**: Helix 配置启用触摸定位光标、失焦自动保存等移动端友好项，透明主题跟随终端背景
+- **Git 规范**: Conventional Commits 提交模板 + 常用别名 + 全局忽略（不含身份）
 - **快捷键栏**: 使用 Termux 默认键栏，仅微调样式选项
 - **系统信息**: 集成 Fastfetch，小屏可用紧凑模式
 - **快捷命令**: 提供大量缩写命令，减少移动端输入负担
@@ -46,20 +50,35 @@
 │   └── .config/fish/
 │       ├── config.fish       # 主配置入口 (说明性注释)
 │       ├── conf.d/           # 按功能拆分的配置片段 (按文件名顺序加载)
-│       │   ├── 00-init.fish      # 工具集成 (zoxide / starship / fzf，已安装则启用)
+│       │   ├── 00-init.fish      # 工具集成 (zoxide / starship / fzf / atuin，已安装则启用)
 │       │   ├── 05-env.fish       # 环境变量与 PATH
+│       │   ├── 10-aliases.fish   # 现代 CLI 别名 (eza / bat / dust / fd / rg)
 │       │   ├── 20-startup.fish   # fish_greeting (fastfetch) 与提示符
 │       │   ├── 99-abbr.fish      # 移动友好缩写
 │       │   └── zz-bash-env.fish  # 继承 Bash 登录环境 (fenv，须排在 omf.fish 之后)
+│       ├── completions/      # 自定义补全
 │       └── functions/        # 自定义函数
 │           ├── cheat.fish        # 命令参考显示
 │           ├── dot.fish          # dot 命令 (cd 本地处理，其余转发给 ~/.local/bin/dot)
+│           ├── retry.fish        # 失败自动重试
+│           ├── run.fish          # 当前目录 justfile 派发
 │           ├── termux-reload.fish
 │           └── update.fish
 ├── fastfetch/                # Fastfetch 配置包
 │   └── .config/fastfetch/
 │       ├── config.jsonc          # 标准显示配置
 │       └── config-compact.jsonc  # 紧凑显示配置
+├── starship/                 # Starship 提示符配置包
+│   └── .config/starship.toml
+├── atuin/                    # Atuin 命令历史配置包
+│   └── .config/atuin/config.toml
+├── git/                      # Git 全局配置包 (提交模板/别名/忽略)
+│   └── .config/git/
+├── helix/                    # Helix 编辑器配置包
+│   └── .config/helix/
+│       ├── config.toml          # 编辑器行为与主题选择
+│       ├── languages.toml       # formatter (fish/clang)
+│       └── themes/transparent.toml  # 透明背景主题
 ├── termux/                   # Termux 配置包
 │   └── .termux/
 │       ├── termux.properties     # 应用设置
@@ -80,6 +99,10 @@
 | `bin` | `bin/.local/bin/dot` | `~/.local/bin/dot` | 中 - dot 命令失效 |
 | `fish` | `fish/.config/fish/` | `~/.config/fish/` | 高 - 影响 Shell 启动 |
 | `fastfetch` | `fastfetch/.config/fastfetch/` | `~/.config/fastfetch/` | 低 - 仅影响显示 |
+| `starship` | `starship/.config/starship.toml` | `~/.config/starship.toml` | 低 - 仅影响提示符 |
+| `atuin` | `atuin/.config/atuin/` | `~/.config/atuin/` | 低 - 仅影响历史搜索 |
+| `git` | `git/.config/git/` | `~/.config/git/` | 中 - 影响 Git 行为 (不含身份) |
+| `helix` | `helix/.config/helix/` | `~/.config/helix/` | 低 - 仅影响编辑器 |
 | `termux` | `termux/.termux/` | `~/.termux/` | 中 - 影响应用行为 |
 
 `docs/`、`*.md`、`packages.txt` 已列入 `.stow-local-ignore`，不会被链接。
@@ -421,6 +444,8 @@ fastfetch --debug         # 调试模式
 | 2026-10-18 | 3.1 | 新增 justfile 一键指令（setup/install-emacs/restow 等）；setup.sh 自动安装 just |
 | 2026-10-18 | 3.2 | Fish 经 Oh My Fish + foreign-env (fenv) 继承 Bash 登录环境；setup.sh 自动安装 OMF 与插件，packages.txt 补充 which |
 | 2026-10-18 | 3.3 | fenv 按 bash 登录优先级继承用户 profile (`~/.bash_profile` → `~/.bash_login` → `~/.profile`)；确认系统级环境由 Termux fish 包自身提供 |
+| 2026-10-18 | 3.4 | 移植主机配置: Atuin 历史搜索、现代 CLI 别名 (eza/bat/dust/fd/rg)、Starship 小屏提示符、retry 重试函数、Git 规范提交换板、Helix 移动端编辑器配置 |
+| 2026-10-18 | 3.5 | 对齐桌面使用习惯: cm/cmall/push/clone/ee/catr 缩写、cp/rm 确认、run 函数；Helix 透明主题与 languages.toml |
 
 ---
 

@@ -114,7 +114,7 @@ dot status
 
 ```bash
 cd "$(dot path)"
-stow -R -t ~ bin fish fastfetch termux
+stow -R -t ~ bin fish fastfetch starship atuin git helix termux
 ```
 
 ---
