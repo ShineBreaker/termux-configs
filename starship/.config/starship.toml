@@ -1,0 +1,55 @@
+# Starship 提示符配置 — 针对手机小屏优化
+# 文档: https://starship.rs/config/
+# 设计: 单行、精简宽度，不显示用户名/主机名，语言模块仅在对应项目中出现
+
+"$schema" = "https://starship.rs/config-schema.json"
+
+# 单行提示符，避免在小屏上多占一行
+format = "$directory$git_branch$git_status$nodejs$python$rust$golang$cmd_duration$character"
+add_newline = false
+
+[directory]
+format = "[$path]($style) "
+style = "bold yellow"
+# 最多显示 3 层目录，更深的用省略号
+truncation_length = 3
+truncation_symbol = "…/"
+
+[directory.substitutions]
+"Projects" = "proj"
+"Documents" = "docs"
+"Downloads" = "dl"
+
+[git_branch]
+format = "[$branch]($style) "
+style = "bold cyan"
+
+[git_status]
+format = "[$all_status$ahead_behind]($style) "
+style = "bold cyan"
+
+[nodejs]
+format = "[node($version)]($style) "
+style = "bold green"
+
+[python]
+format = "[py($version)]($style) "
+style = "bold green"
+
+[rust]
+format = "[rs($version)]($style) "
+style = "bold green"
+
+[golang]
+format = "[go($version)]($style) "
+style = "bold green"
+
+# 命令耗时超过 500ms 时显示
+[cmd_duration]
+min_time = 500
+format = "[$duration]($style) "
+style = "bold yellow"
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
