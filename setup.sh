@@ -80,6 +80,10 @@ show_help() {
     echo "  $0 export     # 导出已安装软件到列表"
     echo "  $0 full       # 完整安装配置"
     echo "  $0            # 等同于 full"
+    echo ""
+    echo "提示:"
+    echo "  安装流程会自动装好 just，之后运行 just 可查看一键指令"
+    echo "  (setup / install-emacs / restow 等)"
 }
 
 # 检查 oma 是否安装，如果没有则安装
@@ -95,6 +99,21 @@ ensure_oma() {
         fi
     else
         print_success "OMA 包管理器已安装"
+    fi
+}
+
+# 检查 just 是否安装，如果没有则安装（justfile 一键指令的运行器）
+ensure_just() {
+    if ! command -v just &> /dev/null; then
+        print_info "正在安装 just（一键指令运行器）..."
+        # 安装失败不中断：just 只是便捷入口，不影响其余安装
+        if pkg install -y just; then
+            print_success "just 安装成功"
+        else
+            print_warning "just 安装失败，可稍后手动执行: pkg install just"
+        fi
+    else
+        print_success "just 已安装"
     fi
 }
 
@@ -212,6 +231,7 @@ fi
 case "${1:-full}" in
     install)
         ensure_oma
+        ensure_just
         install_from_list
         exit 0
         ;;
@@ -272,6 +292,9 @@ echo ""
 
 # 确保 oma 已安装
 ensure_oma
+
+# 确保 just 已安装（一键指令入口）
+ensure_just
 
 # 从软件列表安装
 install_from_list

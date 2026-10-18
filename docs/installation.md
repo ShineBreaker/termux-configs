@@ -30,6 +30,14 @@ bash setup.sh
 # 完全关闭应用后重新打开
 ```
 
+安装脚本会自动装好 [just](https://github.com/casey/just)。之后在仓库目录运行 `just` 查看全部一键指令，常用：
+
+```bash
+just setup          # 完整安装
+just install-emacs  # 安装 Emacs 配置 (UniEmacs)，见 UniEmacs docs/mobile
+just restow         # 修改配置后重新链接
+```
+
 ### 方式二：手动安装
 
 ```bash

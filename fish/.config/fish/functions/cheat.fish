@@ -46,6 +46,15 @@ function cheat
     echo (set_color normal)"  fishrc     编辑 Fish 配置"
     echo "  termuxrc   编辑 Termux 配置"
     echo
+    echo (set_color yellow)"⚡ just 一键指令:"
+    echo (set_color normal)"  just               查看全部指令"
+    echo "  just setup         完整安装"
+    echo "  just install       装软件 (packages.txt)"
+    echo "  just export        导出软件清单"
+    echo "  just install-emacs 安装 Emacs (UniEmacs)"
+    echo "  just restow        重新链接全部配置包"
+    echo "  just status        检查链接状态"
+    echo
     echo (set_color yellow)"📦 Dotfiles 管理:"
     echo (set_color normal)"  dot cd              进入 dotfiles 目录"
     echo "  dot path            输出仓库路径"

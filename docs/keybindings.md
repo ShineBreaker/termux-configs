@@ -84,6 +84,17 @@
 | `dot restow <包>` | 重新链接 |
 | `dot add <包>` | 添加新配置包 |
 
+### just 一键指令
+| 命令 | 说明 |
+|------|------|
+| `just` | 查看全部一键指令 |
+| `just setup` | 完整安装 |
+| `just install` | 从 packages.txt 装软件 |
+| `just export` | 导出软件清单 |
+| `just install-emacs` | 安装 Emacs 配置 (UniEmacs) |
+| `just restow` | 重新链接全部配置包 |
+| `just status` | 检查链接状态 |
+
 ---
 
 ## 💡 使用提示

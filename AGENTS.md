@@ -1,7 +1,7 @@
 # Termux 优化配置项目 - AI Agent 工作指引
 
-> **版本**: 3.0  
-> **最后更新**: 2026-08-14  
+> **版本**: 3.1  
+> **最后更新**: 2026-10-18  
 > **项目目标**: 为 Android Termux 环境提供优化的 Fish Shell 配置，提升移动端终端使用体验
 
 ---
@@ -14,6 +14,7 @@
 - **快捷键栏**: 使用 Termux 默认键栏，仅微调样式选项
 - **系统信息**: 集成 Fastfetch，小屏可用紧凑模式
 - **快捷命令**: 提供大量缩写命令，减少移动端输入负担
+- **一键指令**: 提供 `just` 一键指令，封装安装、重链与 Emacs 部署等常用操作
 - **可复现部署**: 通过 Git + Stow 实现配置的可迁移和可复现
 - **自动定位**: 所有脚本通过自身位置定位仓库，**克隆到任意目录均可工作**
 
@@ -63,6 +64,7 @@
 │       ├── colors.properties     # 颜色主题
 │       └── font.ttf              # 自定义字体
 ├── setup.sh                  # 安装脚本 (install/export/full 子命令)
+├── justfile                  # just 一键指令 (setup/install-emacs/restow 等)
 ├── packages.txt              # 软件包列表
 ├── docs/                     # 用户文档 (不参与 Stow)
 ├── README.md                 # 使用说明
@@ -116,6 +118,7 @@ type -q starship; and starship init fish | source
 ### 5. 单一实现 (Single Source of Truth)
 
 - `dot` 命令逻辑只在 `bin/.local/bin/dot` 一处实现；fish 侧 `dot.fish` 仅做必要的 `cd` 转发
+- `justfile` 仅做入口封装：安装/导出转发 `setup.sh`，链接状态转发 `dot`，Emacs 安装转发 UniEmacs 自带的 `just emacs`，不重复实现逻辑
 - 文档与代码不一致时，以代码为准并修正文档
 
 ---
@@ -153,6 +156,7 @@ type -q starship; and starship init fish | source
 | 新配置包 | `README.md`、`docs/index.md`（`setup.sh` 已动态发现配置包，无需维护包列表；新增不参与 Stow 的顶层目录需同时加入 `setup.sh` 与 `bin/.local/bin/dot` 的 `NON_PACKAGES`） |
 | 快捷键栏 | `docs/keybindings.md`、`README.md` |
 | 安装流程 | `README.md`、`docs/installation.md`、`setup.sh` 帮助文本 |
+| just 指令 | `README.md` 指令表、`docs/keybindings.md`、`cheat.fish` |
 
 ### 添加新缩写 (abbr)
 
@@ -230,6 +234,14 @@ bash setup.sh export    # 导出已安装软件到 packages.txt
 bash setup.sh help      # 帮助
 ```
 
+### 修改 justfile
+
+`justfile` 是常用操作的一键入口，只做转发（见设计原则 5）。新增指令时：
+
+1. 配方注释第一行即 `just --list` 的说明文本，保持一句话、清晰易懂
+2. 同步更新 `README.md` 指令表、`docs/keybindings.md` 与 `cheat.fish`
+3. 用 `just --list` 与 `just --dry-run <指令>` 验证
+
 ---
 
 ## 常见任务指南
@@ -240,7 +252,7 @@ bash setup.sh help      # 帮助
 pkg install git stow fish
 git clone <仓库地址> ~/dotfiles   # 任意目录均可
 cd ~/dotfiles
-bash setup.sh
+bash setup.sh                 # 自动装好 just，之后可 just 一键操作
 # 重启 Termux
 ```
 
@@ -364,6 +376,7 @@ fastfetch --debug         # 调试模式
 | 2026-03-23 | 1.1 | 添加 Stow dotfiles 管理，新增 `dot` 命令 |
 | 2026-03-23 | 2.0 | 重构为 Git 仓库，支持克隆部署 |
 | 2026-08-14 | 3.0 | 移除 Doom Emacs；脚本位置无关化；dot 命令单一实现；文档对齐仓库现实 |
+| 2026-10-18 | 3.1 | 新增 justfile 一键指令（setup/install-emacs/restow 等）；setup.sh 自动安装 just |
 
 ---
 
@@ -374,6 +387,7 @@ fastfetch --debug         # 调试模式
 - [ ] Fish 配置语法正确 (`fish -n` 无错误)
 - [ ] Fastfetch 配置 JSON 语法正确
 - [ ] 新缩写/函数已记录到 `cheat.fish` 和文档
+- [ ] justfile 改动已通过 `just --list` 验证，指令表已同步文档
 - [ ] `dot status` 无冲突
 - [ ] 功能已在实际环境中测试
 - [ ] 移动端显示效果已验证

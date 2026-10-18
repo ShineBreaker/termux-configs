@@ -14,6 +14,7 @@
 | ⚡ **快捷命令** | 大量缩写命令，减少移动端输入负担 |
 | 🔧 **Stow 管理** | 使用 GNU Stow 管理配置，易于维护和同步 |
 | 🧭 **自动定位** | `dot` 命令通过软链接自动找到仓库，克隆位置不限 |
+| ⚡ **一键指令** | `just` 封装安装、重链、Emacs 部署等常用操作 |
 | 📱 **移动优先** | 所有配置针对小屏幕优化 |
 
 ---
@@ -29,7 +30,7 @@ pkg install git stow fish
 # 2. 克隆仓库到任意目录 (此处以 ~/dotfiles 为例)
 git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 
-# 3. 运行安装脚本
+# 3. 运行安装脚本 (自动装好 just，之后可 just 一键操作)
 cd ~/dotfiles
 bash setup.sh
 
@@ -90,6 +91,7 @@ termux-reload-settings
 │       ├── colors.properties     # 颜色主题
 │       └── font.ttf              # 自定义字体
 ├── setup.sh                # 一键安装脚本
+├── justfile                # just 一键指令 (setup/install-emacs/restow ...)
 ├── packages.txt            # 软件包列表 (setup.sh install/export)
 ├── docs/                   # 详细文档
 └── README.md               # 本文件
@@ -175,6 +177,23 @@ termux-reload-settings
 | `update` | 更新系统 |
 | `termux-reload` | 重载 Termux 设置 |
 | `cheat` | 查看所有快捷命令 |
+
+---
+
+## ⚡ 一键指令 (just)
+
+安装脚本会顺带装好 [just](https://github.com/casey/just)。在仓库目录运行 `just` 即可查看全部指令：
+
+| 指令 | 说明 |
+|------|------|
+| `just setup` | 完整安装：装软件 + 链接配置 + 设置 Fish |
+| `just install` | 从 packages.txt 批量安装软件 |
+| `just export` | 导出已安装软件到 packages.txt |
+| `just install-emacs` | 安装 Emacs 配置（UniEmacs）：clone 到 `~/.config/emacs` 并补全依赖 |
+| `just restow` | 重新链接所有配置包（修改配置后） |
+| `just status` | 检查所有配置包的链接状态 |
+
+> `just` 只是便捷入口，各指令逻辑分别由 `setup.sh` 与 `dot` 命令实现。
 
 ---
 
@@ -312,7 +331,7 @@ pkg install git stow fish
 # 2. 克隆仓库 (任意目录)
 git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 
-# 3. 运行安装脚本
+# 3. 运行安装脚本 (自动装好 just，之后可 just 一键操作)
 cd ~/dotfiles
 bash setup.sh
 
@@ -329,7 +348,7 @@ git pull        # 拉取最新配置
 dot list        # 查看包链接状态
 
 # 重新链接全部包 (配置文件有变动时)
-stow -R -t ~ bin fish fastfetch termux
+just restow     # 未安装 just 时先执行: pkg install just
 ```
 
 若拉取的更新移除了 `termux/.termux/shell`（默认 shell 标记已不再入库），

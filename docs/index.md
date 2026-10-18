@@ -16,6 +16,7 @@
 | ⚡ **快捷命令** | 大量缩写命令，减少移动端输入负担 |
 | 🔧 **Stow 管理** | 使用 GNU Stow 管理配置，易于维护和同步 |
 | 🧭 **自动定位** | `dot` 命令通过软链接自动找到仓库，克隆位置不限 |
+| ⚡ **一键指令** | `just` 封装安装、重链、Emacs 部署等常用操作 |
 | 📱 **移动优先** | 所有配置针对小屏幕优化 |
 
 ## 📁 仓库结构
@@ -27,6 +28,7 @@
 ├── fastfetch/              # Fastfetch 配置 → ~/.config/fastfetch/
 ├── termux/                 # Termux 应用配置 → ~/.termux/
 ├── setup.sh                # 一键安装脚本
+├── justfile                # just 一键指令 (setup/install-emacs/restow ...)
 ├── packages.txt            # 软件包列表
 └── docs/                   # 文档目录 (本目录，不参与 Stow)
 ```
