@@ -1,0 +1,36 @@
+# Git 全局配置 — Termux
+# 只包含与身份无关的通用默认值；user.name / user.email / signingkey
+# 请用 `git config --global user.name "..."` 自行设置，避免配置仓库泄露身份。
+# 文档: https://git-scm.com/docs/git-config
+
+[init]
+	defaultBranch = main
+
+[commit]
+	# 提交信息模板 (Conventional Commits 速查)，见同目录 gitmessage
+	template = ~/.config/git/gitmessage
+
+[core]
+	excludesfile = ~/.config/git/ignore
+
+[color]
+	ui = auto
+
+[alias]
+	# 常用速查别名
+	st = status -sb
+	lg = log --oneline --graph --decorate
+	last = log -1 --stat
+	unstage = reset HEAD --
+	amend = commit --amend --no-edit
+	who = shortlog -sne
+
+[fetch]
+	prune = true
+
+[pull]
+	# 拉取时用 rebase 保持历史线性，减少移动端合并噪音
+	rebase = true
+
+[rebase]
+	autosquash = true
