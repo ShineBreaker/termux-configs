@@ -364,6 +364,26 @@ if [ -d "$HOME/.config/fastfetch" ] && [ ! -L "$HOME/.config/fastfetch" ]; then
     cp -r "$HOME/.config/fastfetch" "$BACKUP_DIR/"
 fi
 
+if [ -f "$HOME/.config/starship.toml" ] && [ ! -L "$HOME/.config/starship.toml" ]; then
+    print_info "备份 ~/.config/starship.toml"
+    cp "$HOME/.config/starship.toml" "$BACKUP_DIR/"
+fi
+
+if [ -d "$HOME/.config/atuin" ] && [ ! -L "$HOME/.config/atuin" ]; then
+    print_info "备份 ~/.config/atuin"
+    cp -r "$HOME/.config/atuin" "$BACKUP_DIR/"
+fi
+
+if [ -d "$HOME/.config/helix" ] && [ ! -L "$HOME/.config/helix" ]; then
+    print_info "备份 ~/.config/helix"
+    cp -r "$HOME/.config/helix" "$BACKUP_DIR/"
+fi
+
+if [ -d "$HOME/.config/git" ] && [ ! -L "$HOME/.config/git" ]; then
+    print_info "备份 ~/.config/git"
+    cp -r "$HOME/.config/git" "$BACKUP_DIR/"
+fi
+
 if [ -d "$HOME/.termux" ] && [ ! -L "$HOME/.termux" ]; then
     print_info "备份 ~/.termux"
     cp -r "$HOME/.termux" "$BACKUP_DIR/"
@@ -399,6 +419,10 @@ else
 fi
 rm -rf "$HOME/.config/fish" 2>/dev/null || true
 rm -rf "$HOME/.config/fastfetch" 2>/dev/null || true
+rm -f "$HOME/.config/starship.toml" 2>/dev/null || true
+rm -rf "$HOME/.config/atuin" 2>/dev/null || true
+rm -rf "$HOME/.config/helix" 2>/dev/null || true
+# 不删除 ~/.config/git: 可能含 user.name / user.email，冲突时由 stow 报告
 rm -rf "$HOME/.termux" 2>/dev/null || true
 
 # 使用 Stow 链接所有包
