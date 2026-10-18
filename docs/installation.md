@@ -6,7 +6,7 @@
 
 - **操作系统**: Android 7.0+
 - **应用**: Termux (F-Droid 或 GitHub 版本)
-- **依赖**: Git, GNU Stow, Fish Shell
+- **依赖**: Git, GNU Stow, Fish Shell（Oh My Fish 由安装脚本自动安装）
 - **可选**: Fastfetch, Starship, zoxide, fzf
 
 ---
@@ -30,7 +30,7 @@ bash setup.sh
 # 完全关闭应用后重新打开
 ```
 
-安装脚本会自动装好 [just](https://github.com/casey/just)。之后在仓库目录运行 `just` 查看全部一键指令，常用：
+安装脚本会自动装好 [just](https://github.com/casey/just) 与 [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish) + foreign-env（后者让 Fish 继承 Bash 登录环境）。之后在仓库目录运行 `just` 查看全部一键指令，常用：
 
 ```bash
 just setup          # 完整安装
@@ -51,13 +51,20 @@ cd ~/dotfiles
 # 3. 链接所有配置包
 stow -t ~ bin fish fastfetch termux
 
-# 4. 设置默认 shell
+# 4. 安装 Oh My Fish 与 foreign-env（让 Fish 继承 Bash 环境）
+#    先下载安装器再执行，才能传入非交互参数
+curl -fsSL https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install -o "$TMPDIR/omf-install.fish"
+fish "$TMPDIR/omf-install.fish" --noninteractive --yes
+fish -c 'omf install foreign-env'
+rm -f "$TMPDIR/omf-install.fish"
+
+# 5. 设置默认 shell
 chsh -s fish
 
-# 5. 重载 Termux 设置
+# 6. 重载 Termux 设置
 termux-reload-settings
 
-# 6. 重启 Termux
+# 7. 重启 Termux
 ```
 
 ---
@@ -96,3 +103,4 @@ bash setup.sh
 - **Starship 提示符**: `pkg install starship`，安装后自动接管提示符；未安装时使用内置简版提示符
 - **zoxide 智能跳转**: `pkg install zoxide`，安装后 `cd` 自动变为智能跳转
 - **fzf 模糊查找**: `pkg install fzf`
+- **Bash 环境继承**: 安装脚本自动装好 Oh My Fish + [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时通过 `fenv source ~/.profile` 导入 Bash 环境（见 `conf.d/zz-bash-env.fish`）

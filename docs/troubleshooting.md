@@ -53,6 +53,22 @@ fish
 fish --version
 ```
 
+### Fish 没有继承 Bash 环境
+
+**症状**: 在 `~/.profile` 中导出的变量在 Fish 里看不到
+
+**解决**:
+```bash
+# 1. 检查 fenv 是否可用 (由 Oh My Fish 的 foreign-env 插件提供)
+fish -c 'type -q fenv; and echo 正常; or echo 缺失'
+
+# 2. 检查 foreign-env 插件是否存在
+ls "$HOME/.local/share/omf/pkg/foreign-env"
+
+# 3. 缺失时重跑完整安装，自动补装 Oh My Fish 与 foreign-env
+bash setup.sh
+```
+
 ---
 
 ## ⌨️ 快捷键栏问题

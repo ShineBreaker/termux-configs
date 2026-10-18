@@ -69,3 +69,4 @@ dialog
 dos2unix
 fdisk
 mandoc
+which

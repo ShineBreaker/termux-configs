@@ -19,6 +19,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # 软件列表文件
 PACKAGE_LIST="$SCRIPT_DIR/packages.txt"
 
+# Oh My Fish 安装路径（fish 插件管理器，foreign-env 的 fenv 依赖它）
+OMF_PATH="${XDG_DATA_HOME:-$HOME/.local/share}/omf"
+
 # 仓库内不参与 Stow 的顶层目录
 NON_PACKAGES=(docs)
 
@@ -59,7 +62,7 @@ print_error() {
 }
 
 print_step() {
-    echo -e "${CYAN}[步骤 $1/6]${NC} $2"
+    echo -e "${CYAN}[步骤 $1/7]${NC} $2"
 }
 
 # 显示使用帮助
@@ -84,6 +87,7 @@ show_help() {
     echo "提示:"
     echo "  安装流程会自动装好 just，之后运行 just 可查看一键指令"
     echo "  (setup / install-emacs / restow 等)"
+    echo "  同时会自动安装 Oh My Fish + foreign-env，让 Fish 继承 Bash 环境"
 }
 
 # 检查 oma 是否安装，如果没有则安装
@@ -114,6 +118,46 @@ ensure_just() {
         fi
     else
         print_success "just 已安装"
+    fi
+}
+
+# 检查 Oh My Fish（fish 插件管理器）是否安装，没有则安装，并确保 foreign-env 插件就绪
+# foreign-env 提供的 fenv 命令用于让 Fish 继承 Bash 登录环境 (~/.profile)
+ensure_omf() {
+    # OMF 安装器依赖 which，缺失时补装
+    if ! command -v which &> /dev/null; then
+        print_info "正在安装 which（OMF 安装器依赖）..."
+        if pkg install -y which; then
+            print_success "which 安装成功"
+        else
+            print_warning "which 安装失败，OMF 安装可能受限"
+        fi
+    fi
+
+    if [ -f "$OMF_PATH/init.fish" ]; then
+        print_success "Oh My Fish 已安装"
+    else
+        print_info "正在安装 Oh My Fish（fish 插件管理器）..."
+        local omf_installer
+        omf_installer="$(mktemp)"
+        # 先下载再用 fish 执行，才能传入非交互参数（curl | fish 无法传参）
+        if curl -fsSL "https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install" -o "$omf_installer" \
+            && fish "$omf_installer" --noninteractive --yes; then
+            print_success "Oh My Fish 安装成功"
+        else
+            print_warning "Oh My Fish 安装失败，Fish 暂时无法继承 Bash 环境"
+        fi
+        rm -f "$omf_installer"
+    fi
+
+    # foreign-env 插件提供 fenv（继承 Bash 环境的关键命令）
+    if [ -f "$OMF_PATH/init.fish" ] && [ ! -d "$OMF_PATH/pkg/foreign-env" ]; then
+        print_info "正在安装 foreign-env 插件（提供 fenv）..."
+        if fish -c "omf install foreign-env"; then
+            print_success "foreign-env 安装成功"
+        else
+            print_warning "foreign-env 安装失败，Fish 暂时无法继承 Bash 环境"
+        fi
     fi
 }
 
@@ -263,9 +307,10 @@ echo "本脚本将自动完成以下操作："
 echo "  1. 从 packages.txt 安装软件"
 echo "  2. 备份现有配置"
 echo "  3. 使用 Stow 链接配置文件"
-echo "  4. 设置 Fish 为默认 Shell"
-echo "  5. 重载 Termux 设置"
-echo "  6. 验证配置"
+echo "  4. 安装 Oh My Fish + foreign-env (Fish 继承 Bash 环境)"
+echo "  5. 设置 Fish 为默认 Shell"
+echo "  6. 重载 Termux 设置"
+echo "  7. 验证配置"
 echo ""
 echo "=========================================="
 echo ""
@@ -385,8 +430,16 @@ echo ""
 print_success "已链接 $LINKED_COUNT 个配置包"
 echo ""
 
-# 步骤 4: 设置 Fish 为默认 Shell
-print_step "4" "设置 Fish 为默认 Shell..."
+# 步骤 4: 安装 Oh My Fish 与 foreign-env
+print_step "4" "安装 Oh My Fish 与 foreign-env..."
+echo ""
+
+ensure_omf
+
+echo ""
+
+# 步骤 5: 设置 Fish 为默认 Shell
+print_step "5" "设置 Fish 为默认 Shell..."
 echo ""
 
 # 创建 .termux/shell 文件
@@ -412,8 +465,8 @@ fi
 
 echo ""
 
-# 步骤 5: 重载 Termux 设置
-print_step "5" "重载 Termux 设置..."
+# 步骤 6: 重载 Termux 设置
+print_step "6" "重载 Termux 设置..."
 echo ""
 
 if command -v termux-reload-settings &> /dev/null; then
@@ -425,8 +478,8 @@ fi
 
 echo ""
 
-# 步骤 6: 验证配置
-print_step "6" "验证配置..."
+# 步骤 7: 验证配置
+print_step "7" "验证配置..."
 echo ""
 
 # 验证链接
@@ -475,6 +528,16 @@ for pkg in "${PACKAGES[@]}"; do
             ;;
     esac
 done
+
+echo ""
+
+# 检查 Fish 继承 Bash 环境所需的 fenv
+echo -n "  检查 Bash 环境继承 (fenv) ... "
+if fish -c 'type -q fenv' 2> /dev/null; then
+    echo -e "${GREEN}正常${NC}"
+else
+    echo -e "${YELLOW}未配置，Fish 不会继承 Bash 环境${NC}"
+fi
 
 echo ""
 

@@ -1,6 +1,6 @@
 # Termux 优化配置项目 - AI Agent 工作指引
 
-> **版本**: 3.1  
+> **版本**: 3.2  
 > **最后更新**: 2026-10-18  
 > **项目目标**: 为 Android Termux 环境提供优化的 Fish Shell 配置，提升移动端终端使用体验
 
@@ -11,6 +11,7 @@
 本项目是一个基于 GNU Stow 管理的 Termux 配置文件仓库，可通过 Git 克隆快速部署。主要优化方向包括：
 
 - **Shell 迁移**: 从 Bash 迁移到 Fish，获得更好的交互体验
+- **环境继承**: 登录 Fish 时通过 Oh My Fish 的 foreign-env 插件 (`fenv`) 继承 Bash 环境
 - **快捷键栏**: 使用 Termux 默认键栏，仅微调样式选项
 - **系统信息**: 集成 Fastfetch，小屏可用紧凑模式
 - **快捷命令**: 提供大量缩写命令，减少移动端输入负担
@@ -48,7 +49,8 @@
 │       │   ├── 00-init.fish      # 工具集成 (zoxide / starship / fzf，已安装则启用)
 │       │   ├── 05-env.fish       # 环境变量与 PATH
 │       │   ├── 20-startup.fish   # fish_greeting (fastfetch) 与提示符
-│       │   └── 99-abbr.fish      # 移动友好缩写
+│       │   ├── 99-abbr.fish      # 移动友好缩写
+│       │   └── zz-bash-env.fish  # 继承 Bash 登录环境 (fenv，须排在 omf.fish 之后)
 │       └── functions/        # 自定义函数
 │           ├── cheat.fish        # 命令参考显示
 │           ├── dot.fish          # dot 命令 (cd 本地处理，其余转发给 ~/.local/bin/dot)
@@ -210,6 +212,21 @@ end
 2. `dot restow termux`
 3. `termux-reload-settings`，必要时重启 Termux
 
+### Fish 继承 Bash 环境 (Oh My Fish + fenv)
+
+**机制**: `setup.sh` 自动安装 Oh My Fish（fish 插件管理器）与 `foreign-env` 插件；
+后者提供 `fenv` 命令，`conf.d/zz-bash-env.fish` 在登录会话中执行
+`fenv source ~/.profile`，把 Bash 登录环境导入 Fish。
+
+**维护注意**:
+
+- `conf.d/omf.fish` 由 OMF 安装器运行时写入（经折叠链接落到仓库内），已列入
+  `.gitignore`，不要手工维护或入库。
+- 新增启动片段时若需用到 `fenv`，文件名必须以 `zz-` 开头，才能按字母序排在
+  `omf.fish` 之后加载（conf.d 按文件名排序）。
+- OMF 安装器依赖 `which`，已在 `packages.txt` 中；`setup.sh` 的 `ensure_omf()`
+  失败时只告警不中断，不影响 Fish 其余功能。
+
 ### 使用 dot 命令管理 dotfiles
 
 ```bash
@@ -321,6 +338,19 @@ set -Ux DOTFILES_DIR ~/dotfiles    # 或手动指定位置 (fish)
 fastfetch --config ~/.config/fastfetch/config.jsonc --debug
 ```
 
+### Fish 没有继承 Bash 环境
+
+```bash
+# 1. 检查 fenv 是否可用 (由 Oh My Fish 的 foreign-env 插件提供)
+fish -c 'type -q fenv; and echo 正常; or echo 缺失'
+
+# 2. 检查 foreign-env 插件是否存在
+ls "$HOME/.local/share/omf/pkg/foreign-env"
+
+# 3. 缺失时重跑完整安装，自动补装 Oh My Fish 与 foreign-env
+bash setup.sh
+```
+
 ### Stow 链接冲突
 
 ```bash
@@ -377,6 +407,7 @@ fastfetch --debug         # 调试模式
 | 2026-03-23 | 2.0 | 重构为 Git 仓库，支持克隆部署 |
 | 2026-08-14 | 3.0 | 移除 Doom Emacs；脚本位置无关化；dot 命令单一实现；文档对齐仓库现实 |
 | 2026-10-18 | 3.1 | 新增 justfile 一键指令（setup/install-emacs/restow 等）；setup.sh 自动安装 just |
+| 2026-10-18 | 3.2 | Fish 经 Oh My Fish + foreign-env (fenv) 继承 Bash 登录环境；setup.sh 自动安装 OMF 与插件，packages.txt 补充 which |
 
 ---
 
@@ -388,6 +419,7 @@ fastfetch --debug         # 调试模式
 - [ ] Fastfetch 配置 JSON 语法正确
 - [ ] 新缩写/函数已记录到 `cheat.fish` 和文档
 - [ ] justfile 改动已通过 `just --list` 验证，指令表已同步文档
+- [ ] Fish 环境继承可用 (`fish -c 'type -q fenv'` 通过)
 - [ ] `dot status` 无冲突
 - [ ] 功能已在实际环境中测试
 - [ ] 移动端显示效果已验证

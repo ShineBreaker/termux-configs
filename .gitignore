@@ -6,3 +6,6 @@ termux/.termux/shell
 
 # fish 运行时写入的 universal 变量（同样经折叠链接落到仓库内，不入库）
 fish/.config/fish/fish_variables
+
+# Oh My Fish 安装器写入的启动文件（同样经折叠链接落到仓库内，不入库）
+fish/.config/fish/conf.d/omf.fish

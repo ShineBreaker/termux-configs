@@ -9,6 +9,7 @@
 | 特性 | 说明 |
 |------|------|
 | 🐟 **Fish Shell** | 现代化 Shell，自动补全、语法高亮、智能提示 |
+| 🧬 **Bash 环境继承** | 登录 Fish 时自动导入 Bash 环境 (`~/.profile`)，无需手动 source |
 | ⌨️ **快捷键栏** | Termux 默认快捷键栏，仅微调样式选项 |
 | 📊 **Fastfetch** | 启动显示系统信息，小屏可用紧凑模式 |
 | ⚡ **快捷命令** | 大量缩写命令，减少移动端输入负担 |
@@ -30,7 +31,7 @@ pkg install git stow fish
 # 2. 克隆仓库到任意目录 (此处以 ~/dotfiles 为例)
 git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 
-# 3. 运行安装脚本 (自动装好 just，之后可 just 一键操作)
+# 3. 运行安装脚本 (自动装好 just 与 Oh My Fish，之后可 just 一键操作)
 cd ~/dotfiles
 bash setup.sh
 
@@ -75,7 +76,8 @@ termux-reload-settings
 │       │   ├── 00-init.fish      # 工具集成 (zoxide / starship / fzf)
 │       │   ├── 05-env.fish       # 环境变量与 PATH
 │       │   ├── 20-startup.fish   # 欢迎消息与提示符
-│       │   └── 99-abbr.fish      # 移动友好缩写
+│       │   ├── 99-abbr.fish      # 移动友好缩写
+│       │   └── zz-bash-env.fish  # 继承 Bash 登录环境 (fenv，omf 提供)
 │       └── functions/      # 自定义函数
 │           ├── cheat.fish        # 命令参考
 │           ├── dot.fish          # dot 命令 (转发 cd，其余给 ~/.local/bin/dot)
@@ -310,6 +312,7 @@ git push
 - **Starship 提示符**: `pkg install starship`，安装后自动接管提示符；未安装时使用内置简版提示符
 - **zoxide 智能跳转**: `pkg install zoxide`，安装后 `cd` 自动变为智能跳转
 - **fzf 模糊查找**: `pkg install fzf`
+- **Bash 环境继承**: 安装脚本自动装好 [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish) 与 [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时用 `fenv source ~/.profile` 导入 Bash 环境（见 `conf.d/zz-bash-env.fish`），未安装时静默跳过
 
 ---
 
@@ -331,7 +334,7 @@ pkg install git stow fish
 # 2. 克隆仓库 (任意目录)
 git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 
-# 3. 运行安装脚本 (自动装好 just，之后可 just 一键操作)
+# 3. 运行安装脚本 (自动装好 just 与 Oh My Fish，之后可 just 一键操作)
 cd ~/dotfiles
 bash setup.sh
 
@@ -448,6 +451,16 @@ fastfetch --config ~/.config/fastfetch/config.jsonc
 
 # 查看详细错误
 fastfetch --config ~/.config/fastfetch/config.jsonc --debug
+```
+
+### Fish 没有继承 Bash 环境
+
+```bash
+# 检查 fenv 是否可用
+fish -c 'type -q fenv; and echo 正常; or echo 缺失'
+
+# 缺失时重跑完整安装，自动补装 Oh My Fish 与 foreign-env
+bash setup.sh
 ```
 
 ---
