@@ -18,7 +18,15 @@ install:
 export:
     bash setup.sh export
 
-# 安装 Emacs 配置（UniEmacs）: clone 到 ~/.config/emacs 并补全依赖
+# 安装 Pi 编码助手（官方托管安装器，可重复执行以升级）
+install-pi:
+    curl -fsSL https://pi.dev/install.sh | sh
+
+# 安装 Tailscale（bropines/tailscale-termux-cli，Android 免 root；可重复执行以升级）
+install-tailscale:
+    curl -fsSL https://raw.githubusercontent.com/bropines/tailscale-termux-cli/main/remote-install.sh | bash
+
+# 安装 Emacs 配置（UniEmacs）: clone 仓库、部署原生 Emacs 入口、预装字体并在 Termux 预构建插件
 install-emacs:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -34,6 +42,21 @@ install-emacs:
         mkdir -p "$(dirname "$target")"
         git clone https://github.com/ShineBreaker/UniEmacs.git "$target"
     fi
+
+    # Android 原生 Emacs（org.gnu.emacs）只读自己家目录的 init，
+    # 仓库体已 clone 到 ~/.config/emacs，这里把两个入口文件复制过去。
+    emacs_home="/data/data/org.gnu.emacs/files"
+    if [ -d "$emacs_home" ]; then
+        mkdir -p "$emacs_home/.emacs.d"
+        cp "$target/early-init.el" "$target/init.el" "$emacs_home/.emacs.d/"
+        echo "已部署入口文件到 $emacs_home/.emacs.d/"
+    else
+        echo "未检测到 Android 原生 Emacs（$emacs_home），跳过入口文件部署"
+    fi
+
+    # just emacs = termux-deps → font → icons → packages：
+    # 在 Termux 里装齐依赖、字体并在本机预构建插件（缓存进 Termux home，
+    # 与原生 Emacs 共享），避免首次打开时现装现编。
     cd "$target"
     just emacs
 
