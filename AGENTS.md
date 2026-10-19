@@ -1,6 +1,6 @@
 # Termux 优化配置项目 - AI Agent 工作指引
 
-> **版本**: 3.9  
+> **版本**: 3.10  
 > **最后更新**: 2026-10-18  
 > **项目目标**: 为 Android Termux 环境提供优化的 Fish Shell 配置，提升移动端终端使用体验
 
@@ -88,7 +88,8 @@
 │   └── .termux/
 │       ├── termux.properties     # 应用设置
 │       ├── colors.properties     # 颜色主题
-│       └── font.ttf              # 自定义字体
+│       ├── font.ttf              # 自定义字体
+│       └── motd.sh               # 登录提示 (Tailscale/tmux/Agents/内存/仓库)
 ├── setup.sh                  # 安装脚本 (install/export/full 子命令)
 ├── justfile                  # just 一键指令 (setup/install-emacs/restow 等)
 ├── packages.txt              # 软件包列表
@@ -187,6 +188,7 @@ type -q starship; and starship init fish | source
 | 新配置包 | `README.md`、`docs/index.md`（`setup.sh` 已动态发现配置包，无需维护包列表；新增不参与 Stow 的顶层目录需同时加入 `setup.sh` 与 `bin/.local/bin/dot` 的 `NON_PACKAGES`） |
 | 快捷键栏 | `docs/keybindings.md`、`README.md` |
 | 安装流程 | `README.md`、`docs/installation.md`、`setup.sh` 帮助文本 |
+| Termux MOTD | `README.md`、`docs/customization.md`、`docs/troubleshooting.md` |
 | tmux 自动进入 | `README.md`、`docs/keybindings.md`、`docs/customization.md`、`docs/troubleshooting.md`、`cheat.fish` |
 | tmux 键位/脚本 | `docs/tmux.md`、`docs/keybindings.md`、`cheat.fish` |
 | just 指令 | `README.md` 指令表、`docs/keybindings.md`、`cheat.fish` |
@@ -458,6 +460,7 @@ fastfetch --debug         # 调试模式
 | 2026-10-18 | 3.7 | 新增 `tmux` 配置包：移植 Guix-configs 键位 (前缀改为 C-b)、`?` 速查与 `f` fzf 窗口跳转；剪贴板用 OSC52 + 可选 Termux:API (不阻塞) |
 | 2026-10-18 | 3.8 | 修复 tmux 顶栏条件样式含逗号导致渲染出字面 `bold]` 的问题；状态栏与终端标题加客户端短号 (`main·N`) 区分标签页；`TMUX_AUTO=tab` 改用自动短名 |
 | 2026-10-18 | 3.9 | tmux 状态栏右侧改为时间 + 内存占用 (`mem-status`)，移除无意义的 hostname/终端尺寸 |
+| 2026-10-18 | 3.10 | 新增自定义 Termux 登录提示 `motd.sh`：显示 Tailscale/tmux/Emacs·Pi/内存/dotfiles 状态；静态信息带 1 天缓存 |
 
 ---
 

@@ -303,6 +303,27 @@ rm -rf ~/dotfiles
 termux-setup-storage
 ```
 
+### 登录提示 (MOTD) 不显示或信息不对
+
+Termux 的 `login` 优先执行 `~/.termux/motd.sh`，不显示通常是因为：
+
+```bash
+# 1. 确认链接与可执行位
+ls -la ~/.termux/motd.sh
+
+# 2. 看是否被 hushlogin 关掉
+ls ~/.hushlogin 2>/dev/null && echo "hushlogin 存在，MOTD 已关闭"
+echo "$TERMUX_HUSHLOGIN"
+
+# 3. 静态信息有 1 天缓存，强制刷新
+rm -f ~/.cache/termux-motd-cache
+
+# 4. 直接运行看输出
+bash ~/.termux/motd.sh
+```
+
+想关掉 MOTD：`touch ~/.hushlogin`（或单次 `TERMUX_HUSHLOGIN=1 fish`）。
+
 ---
 
 ## 💡 通用诊断步骤

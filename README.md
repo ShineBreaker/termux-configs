@@ -17,6 +17,7 @@
 | 📝 **Helix 编辑器** | 移动端友好的编辑器配置，支持触摸点击定位光标 |
 | 📐 **Git 规范** | Conventional Commits 提交模板 + 常用别名 |
 | ⌨️ **快捷键栏** | Termux 默认快捷键栏，仅微调样式选项 |
+| 🪧 **登录提示** | 自定义 MOTD：Tailscale / tmux / Emacs / Pi / 内存 / 仓库状态 |
 | 📊 **Fastfetch** | 启动显示系统信息，小屏可用紧凑模式 |
 | ⚡ **快捷命令** | 大量缩写命令，减少移动端输入负担 |
 | 🔧 **Stow 管理** | 使用 GNU Stow 管理配置，易于维护和同步 |
@@ -117,7 +118,8 @@ termux-reload-settings
 │   └── .termux/
 │       ├── termux.properties     # 应用设置
 │       ├── colors.properties     # 颜色主题
-│       └── font.ttf              # 自定义字体
+│       ├── font.ttf              # 自定义字体
+│       └── motd.sh               # 登录提示 (Tailscale/tmux/Agents/内存/仓库)
 ├── setup.sh                # 一键安装脚本
 ├── justfile                # just 一键指令 (setup/install-emacs/restow ...)
 ├── packages.txt            # 软件包列表 (setup.sh install/export)

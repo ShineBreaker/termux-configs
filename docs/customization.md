@@ -110,6 +110,33 @@ extra-keys = [['ESC','/','-','HOME','UP','END','PGUP'], \
 
 ---
 
+## 🪧 自定义 Termux 登录提示 (MOTD)
+
+Termux 的 `login` 会优先执行 `~/.termux/motd.sh`，存在时不再显示
+`$PREFIX/etc/motd` 的默认欢迎语。本项目把自定义 MOTD 放在
+`termux/.termux/motd.sh`，由 Stow 链接：
+
+```bash
+dot cd
+$EDITOR termux/.termux/motd.sh   # 编辑内容
+dot restow termux                # 重新链接
+```
+
+当前 MOTD 显示：Termux 版本 / Android / 设备、Tailscale IP、tmux 会话、
+Emacs · Pi 版本、内存占用、dotfiles 仓库状态与时间。修改后直接开新标签页验证。
+
+静态信息（设备、工具版本、仓库路径）会缓存在 `~/.cache/termux-motd-cache`，
+TTL 1 天或 `$TERMUX_VERSION` 变化时重建；删除该文件可强制刷新。
+
+临时不看 MOTD：
+
+```bash
+touch ~/.hushlogin            # 持久关闭
+TERMUX_HUSHLOGIN=1 fish       # 单次关闭
+```
+
+---
+
 ## ➕ 添加自定义别名
 
 编辑 `fish/.config/fish/conf.d/99-abbr.fish`，添加：
