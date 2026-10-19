@@ -75,6 +75,68 @@ bash setup.sh
 
 ---
 
+## 🧩 tmux 相关问题
+
+### 开新标签页没有自动进入 tmux
+
+```bash
+# 1. 确认已安装 tmux
+pkg install tmux
+
+# 2. 确认未被临时禁用 (TMUX_AUTO=0)
+fish -c 'set -q TMUX_AUTO; and echo "TMUX_AUTO=$TMUX_AUTO"; or echo "未设置"'
+
+# 3. 临时绕过时不会再自动进入，属于预期行为
+TMUX_AUTO=0 fish
+```
+
+### 想临时回到普通 Fish
+
+```bash
+TMUX_AUTO=0 fish
+```
+
+### 不小心脱离了 tmux (标签页已关闭)
+
+```bash
+# 查看后台会话
+tmux ls
+# 重新接入共享会话
+tmux attach -t main
+```
+
+### 每个标签页都创建了新会话
+
+```bash
+# 恢复默认的共享 main 会话
+set -Ue TMUX_AUTO
+```
+
+### 复制后 Android 剪贴板没有内容
+
+复制会先写入 tmux 缓冲并尝试 OSC52；若想同时写入系统剪贴板，需要安装
+[Termux:API](https://wiki.termux.com/wiki/Termux:API) **配套 App**（仅有
+`termux-api` 包不够）。脚本只探测一次并缓存结果，装上 App 后清缓存重试：
+
+```bash
+rm -f ~/.cache/tmux-clipboard-api
+```
+
+### tmux 配置改了不生效
+
+tmux 配置在 **server 启动时**读取一次。已有 server 在跑（例如之前手动开过
+会话）时，新配置不会自动生效：
+
+```bash
+# 在 tmux 内按前缀 + r 重载，或手动 source
+tmux source-file ~/.config/tmux/tmux.conf
+```
+
+若改了 `prefix` 等客户端级选项，重载后可能需要 `prefix + :` 确认新前缀。
+彻底重来（会丢失所有会话）：`tmux kill-server`，然后开新标签页重新进入。
+
+---
+
 ## ⌨️ 快捷键栏问题
 
 ### 快捷键栏不显示
@@ -202,7 +264,7 @@ chsh -s bash
 
 ```bash
 cd "$(dot path)"
-stow -R -t ~ bin fish fastfetch starship atuin git helix termux
+stow -R -t ~ bin fish fastfetch starship atuin git helix tmux termux
 ```
 
 ### 完全卸载
@@ -213,7 +275,7 @@ chsh -s bash
 
 # 2. 取消所有链接
 cd "$(dot path)"
-stow -D -t ~ bin fish fastfetch starship atuin git helix termux
+stow -D -t ~ bin fish fastfetch starship atuin git helix tmux termux
 
 # 3. 删除仓库（可选）
 rm -rf ~/dotfiles

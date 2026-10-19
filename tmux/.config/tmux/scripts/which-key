@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
+# which-key — 快捷键速查 float 弹窗（前缀 C-b）。
+# 由 tmux.conf 的 display-popup 直接以 bash 运行，文案需与 tmux.conf 手工同步。
+
+cat <<'EOF'
+
+  tmux 快捷键速查  前缀 = Ctrl-b  (Termux: 音量+ 与 b 同按)
+
+  基础                                  窗格
+    r      重新加载配置                   \      左右分屏
+    ?      显示本帮助                     -      上下分屏
+    d      脱离会话 (后台保留)            h j k l   切换窗格
+    z      放大 / 还原当前窗格            x      关闭窗格
+    s      会话·窗口浮窗选择器            Alt+←→↑↓     切换窗格
+    f      fzf 模糊跳转窗口               Ctrl+←→↑↓    调整大小
+
+  窗口 / 会话                           复制模式
+    c      新建窗口                       [ 或 Esc  进入复制模式
+    C      新建会话                       v         开始选择
+    X      关闭窗口                       y / Enter 复制 (OSC52 / Termux:API)
+    K      关闭会话                       Esc       退出复制模式
+    0-9 / Alt+1~5   切换窗口
+
+  粘贴
+    p      粘贴 (Android 剪贴板 / tmux 缓冲)
+
+
+  按回车关闭...
+EOF
+
+read -r _

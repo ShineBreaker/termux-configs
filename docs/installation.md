@@ -49,7 +49,7 @@ git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 cd ~/dotfiles
 
 # 3. 链接所有配置包
-stow -t ~ bin fish fastfetch starship atuin git helix termux
+stow -t ~ bin fish fastfetch starship atuin git helix tmux termux
 
 # 4. 安装 Oh My Fish 与 foreign-env（让 Fish 继承 Bash 环境）
 #    先下载安装器再执行，才能传入非交互参数
@@ -108,3 +108,4 @@ bash setup.sh
 - **Helix 编辑器**: 已随 `packages.txt` 安装，配置启用触摸定位光标、失焦自动保存等移动端友好项
 - **Git 规范**: 链接 `git` 包后全局启用 Conventional Commits 提交模板、常用别名与全局忽略（不含 user.name/email）
 - **Bash 环境继承**: 安装脚本自动装好 Oh My Fish + [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时通过 `fenv` 按 bash 优先级（`~/.bash_profile` → `~/.bash_login` → `~/.profile`）导入用户环境（见 `conf.d/zz-bash-env.fish`）
+- **tmux 终端复用**: `tmux` 已随 `packages.txt` 安装，新标签页自动进入共享 `main` 会话；配置包 `tmux` 提供前缀 `Ctrl-b` 的键位（`?` 速查、`s` 选择器、`f` 模糊跳转、复制模式），详见 [tmux 配置](./tmux.md)

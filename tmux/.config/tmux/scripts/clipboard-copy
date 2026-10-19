@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
+# clipboard-copy — copy-mode 复制钩子：选中文本经 stdin 传入。
+# tmux 已负责写入自身 buffer，并在 set-clipboard on 时尝试 OSC52；
+# 这里只在 Termux:API 应用可用时额外同步到 Android 剪贴板，且永不阻塞。
+set -uo pipefail
+
+if bash ~/.config/tmux/scripts/termux-api-ready; then
+  timeout 2 termux-clipboard-set 2>/dev/null || true
+else
+  # 无 API 应用：把选中内容读走，避免管道写入方收到 SIGPIPE
+  cat >/dev/null 2>&1 || true
+fi

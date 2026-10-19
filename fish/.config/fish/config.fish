@@ -3,6 +3,7 @@
 #   00-init.fish    工具集成 (zoxide / starship / fzf / atuin)
 #   05-env.fish     环境变量与 PATH
 #   10-aliases.fish 现代 CLI 别名 (eza / bat / dust / fd / rg)
+#   15-tmux.fish    自动进入 tmux 会话 (main 共享 / tab 独立，可用 TMUX_AUTO 控制)
 #   20-startup.fish 欢迎消息与提示符
 #   99-abbr.fish    移动友好缩写
 #   zz-bash-env.fish 继承 Bash 登录环境 (fenv，需在 omf.fish 之后加载)

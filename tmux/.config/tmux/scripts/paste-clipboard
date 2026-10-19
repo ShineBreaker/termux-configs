@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
+# paste-clipboard — 优先取 Android 剪贴板写入 tmux 缓冲，然后粘贴。
+# Termux:API 应用不可用时直接粘贴 tmux 自身缓冲，绝不阻塞。
+set -uo pipefail
+
+if bash ~/.config/tmux/scripts/termux-api-ready; then
+  timeout 2 termux-clipboard-get 2>/dev/null | tmux load-buffer - 2>/dev/null || true
+fi
+
+tmux paste-buffer

@@ -379,6 +379,11 @@ if [ -d "$HOME/.config/helix" ] && [ ! -L "$HOME/.config/helix" ]; then
     cp -r "$HOME/.config/helix" "$BACKUP_DIR/"
 fi
 
+if [ -d "$HOME/.config/tmux" ] && [ ! -L "$HOME/.config/tmux" ]; then
+    print_info "备份 ~/.config/tmux"
+    cp -r "$HOME/.config/tmux" "$BACKUP_DIR/"
+fi
+
 if [ -d "$HOME/.config/git" ] && [ ! -L "$HOME/.config/git" ]; then
     print_info "备份 ~/.config/git"
     cp -r "$HOME/.config/git" "$BACKUP_DIR/"
@@ -422,6 +427,7 @@ rm -rf "$HOME/.config/fastfetch" 2>/dev/null || true
 rm -f "$HOME/.config/starship.toml" 2>/dev/null || true
 rm -rf "$HOME/.config/atuin" 2>/dev/null || true
 rm -rf "$HOME/.config/helix" 2>/dev/null || true
+rm -rf "$HOME/.config/tmux" 2>/dev/null || true
 # 不删除 ~/.config/git: 可能含 user.name / user.email，冲突时由 stow 报告
 rm -rf "$HOME/.termux" 2>/dev/null || true
 
@@ -540,6 +546,14 @@ for pkg in "${PACKAGES[@]}"; do
             ;;
         termux)
             if [ -L "$HOME/.termux" ] || [ -d "$HOME/.termux" ]; then
+                echo -e "${GREEN}正常${NC}"
+            else
+                echo -e "${RED}异常${NC}"
+                ALL_LINKED=false
+            fi
+            ;;
+        tmux)
+            if [ -L "$HOME/.config/tmux" ] || [ -f "$HOME/.config/tmux/tmux.conf" ]; then
                 echo -e "${GREEN}正常${NC}"
             else
                 echo -e "${RED}异常${NC}"

@@ -58,6 +58,12 @@ function cheat
     echo "  update 更新系统 (函数)"
     echo "  termux-reload  重载设置 (函数)"
     echo
+    echo (set_color yellow)"🧩 tmux 会话复用:"
+    echo (set_color normal)"  新标签页自动进入 main 共享会话"
+    echo "  跳过: TMUX_AUTO=0 fish  每标签独立: TMUX_AUTO=tab fish"
+    echo "  前缀 Ctrl-b (音量+ + b): ? 帮助  s 会话列表  f 跳窗口"
+    echo "  分屏: \\ 左右 / - 上下   复制: [ 进入, v 选, y 复制   粘贴: p"
+    echo
     echo (set_color yellow)"📝 编辑配置:"
     echo (set_color normal)"  fishrc     编辑 Fish 配置"
     echo "  termuxrc   编辑 Termux 配置"

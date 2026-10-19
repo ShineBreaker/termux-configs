@@ -1,6 +1,6 @@
 # Termux 优化配置项目 - AI Agent 工作指引
 
-> **版本**: 3.3  
+> **版本**: 3.7  
 > **最后更新**: 2026-10-18  
 > **项目目标**: 为 Android Termux 环境提供优化的 Fish Shell 配置，提升移动端终端使用体验
 
@@ -53,6 +53,7 @@
 │       │   ├── 00-init.fish      # 工具集成 (zoxide / starship / fzf / atuin，已安装则启用)
 │       │   ├── 05-env.fish       # 环境变量与 PATH
 │       │   ├── 10-aliases.fish   # 现代 CLI 别名 (eza / bat / dust / fd / rg)
+│       │   ├── 15-tmux.fish      # 自动进入 tmux 会话 (main 共享 / tab 独立)
 │       │   ├── 20-startup.fish   # fish_greeting (fastfetch) 与提示符
 │       │   ├── 99-abbr.fish      # 移动友好缩写
 │       │   └── zz-bash-env.fish  # 继承 Bash 登录环境 (fenv，须排在 omf.fish 之后)
@@ -79,6 +80,10 @@
 │       ├── config.toml          # 编辑器行为与主题选择
 │       ├── languages.toml       # formatter (fish/clang)
 │       └── themes/transparent.toml  # 透明背景主题
+├── tmux/                     # tmux 终端复用配置包 (前缀 C-b)
+│   └── .config/tmux/
+│       ├── tmux.conf             # 键位、状态栏、复制模式
+│       └── scripts/              # which-key / window-jump / 剪贴板脚本
 ├── termux/                   # Termux 配置包
 │   └── .termux/
 │       ├── termux.properties     # 应用设置
@@ -103,6 +108,7 @@
 | `atuin` | `atuin/.config/atuin/` | `~/.config/atuin/` | 低 - 仅影响历史搜索 |
 | `git` | `git/.config/git/` | `~/.config/git/` | 中 - 影响 Git 行为 (不含身份) |
 | `helix` | `helix/.config/helix/` | `~/.config/helix/` | 低 - 仅影响编辑器 |
+| `tmux` | `tmux/.config/tmux/` | `~/.config/tmux/` | 低 - 仅影响 tmux 会话 |
 | `termux` | `termux/.termux/` | `~/.termux/` | 中 - 影响应用行为 |
 
 `docs/`、`*.md`、`packages.txt` 已列入 `.stow-local-ignore`，不会被链接。
@@ -181,6 +187,8 @@ type -q starship; and starship init fish | source
 | 新配置包 | `README.md`、`docs/index.md`（`setup.sh` 已动态发现配置包，无需维护包列表；新增不参与 Stow 的顶层目录需同时加入 `setup.sh` 与 `bin/.local/bin/dot` 的 `NON_PACKAGES`） |
 | 快捷键栏 | `docs/keybindings.md`、`README.md` |
 | 安装流程 | `README.md`、`docs/installation.md`、`setup.sh` 帮助文本 |
+| tmux 自动进入 | `README.md`、`docs/keybindings.md`、`docs/customization.md`、`docs/troubleshooting.md`、`cheat.fish` |
+| tmux 键位/脚本 | `docs/tmux.md`、`docs/keybindings.md`、`cheat.fish` |
 | just 指令 | `README.md` 指令表、`docs/keybindings.md`、`cheat.fish` |
 
 ### 添加新缩写 (abbr)
@@ -446,6 +454,8 @@ fastfetch --debug         # 调试模式
 | 2026-10-18 | 3.3 | fenv 按 bash 登录优先级继承用户 profile (`~/.bash_profile` → `~/.bash_login` → `~/.profile`)；确认系统级环境由 Termux fish 包自身提供 |
 | 2026-10-18 | 3.4 | 移植主机配置: Atuin 历史搜索、现代 CLI 别名 (eza/bat/dust/fd/rg)、Starship 小屏提示符、retry 重试函数、Git 规范提交换板、Helix 移动端编辑器配置 |
 | 2026-10-18 | 3.5 | 对齐桌面使用习惯: cm/cmall/push/clone/ee/catr 缩写、cp/rm 确认、run 函数；Helix 透明主题与 languages.toml |
+| 2026-10-18 | 3.6 | 新增 tmux 自动进入 (`conf.d/15-tmux.fish`)：默认共享 main 会话，TMUX_AUTO 可切 tab 独立或禁用 |
+| 2026-10-18 | 3.7 | 新增 `tmux` 配置包：移植 Guix-configs 键位 (前缀改为 C-b)、`?` 速查与 `f` fzf 窗口跳转；剪贴板用 OSC52 + 可选 Termux:API (不阻塞) |
 
 ---
 

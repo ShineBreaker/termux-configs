@@ -11,6 +11,7 @@
 | 特性 | 说明 |
 |------|------|
 | 🐟 **Fish Shell** | 现代化 Shell，自动补全、语法高亮、智能提示 |
+| 🧩 **会话复用** | 新标签页自动进入 tmux 共享会话 (`main`)，断开/重启后可恢复 |
 | 🧬 **Bash 环境继承** | 登录 Fish 时按 bash 优先级导入用户 profile (`~/.bash_profile` → `~/.bash_login` → `~/.profile`) |
 | 🔎 **历史搜索** | Atuin 保存命令历史，Ctrl-R / ↑ 模糊搜索 |
 | 🛠️ **现代 CLI** | eza / bat / dust / fd / rg 别名，装了对应包自动启用 |
@@ -37,6 +38,8 @@
 ├── git/                    # Git 全局配置 → ~/.config/git/
 ├── helix/                  # Helix 编辑器配置 → ~/.config/helix/
 │   └── .config/helix/      #   config.toml + languages.toml + themes/transparent.toml
+├── tmux/                   # tmux 终端复用配置 → ~/.config/tmux/
+│   └── .config/tmux/       #   tmux.conf + scripts/
 ├── termux/                 # Termux 应用配置 → ~/.termux/
 ├── setup.sh                # 一键安装脚本
 ├── justfile                # just 一键指令 (setup/install-emacs/restow ...)
@@ -55,6 +58,7 @@
 | `atuin` | 命令历史搜索配置 | `~/.config/atuin/` |
 | `git` | Git 全局配置 (不含身份) | `~/.config/git/` |
 | `helix` | Helix 编辑器配置 | `~/.config/helix/` |
+| `tmux` | tmux 终端复用配置 (前缀 C-b) | `~/.config/tmux/` |
 | `termux` | Termux 应用设置 | `~/.termux/` |
 
 ## 📚 文档导航
@@ -63,6 +67,7 @@
 |------|------|
 | [安装指南](./installation.md) | 快速开始和手动安装步骤 |
 | [快捷键与命令](./keybindings.md) | 快捷键栏说明和 Fish 快捷命令 |
+| [tmux 配置](./tmux.md) | 终端复用：自动进入会话、键位与剪贴板 |
 | [Fastfetch 配置](./fastfetch.md) | 系统信息显示配置和使用 |
 | [Dotfiles 管理](./dotfiles-management.md) | 使用 `dot` 命令和 Stow 管理配置 |
 | [自定义配置](./customization.md) | 如何修改和自定义配置 |

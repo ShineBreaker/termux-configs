@@ -21,6 +21,7 @@ fishrc
 | `conf.d/00-init.fish` | 工具集成 (zoxide / starship / fzf / atuin) |
 | `conf.d/05-env.fish` | 环境变量与 PATH |
 | `conf.d/10-aliases.fish` | 现代 CLI 别名 (eza / bat / dust / fd / rg) |
+| `conf.d/15-tmux.fish` | 自动进入 tmux 会话 (main 共享 / tab 独立) |
 | `conf.d/20-startup.fish` | 欢迎消息与提示符 |
 | `conf.d/99-abbr.fish` | 移动友好缩写 |
 | `functions/` | 自定义函数 (含 `retry`) |
@@ -34,6 +35,49 @@ $EDITOR fish/.config/fish/conf.d/99-abbr.fish
 # 重新链接
 dot restow fish
 ```
+
+---
+
+## 🧩 调整 tmux 会话复用
+
+`conf.d/15-tmux.fish` 会在交互式 Fish 启动时自动接入 tmux，默认所有标签页共享名为 `main` 的会话。
+
+```bash
+# 临时绕过自动进入 (只想开一个普通 Fish)
+TMUX_AUTO=0 fish
+
+# 临时改为每标签页独立会话
+TMUX_AUTO=tab fish
+
+# 永久改为每标签页独立 (写入 fish universal 变量)
+set -Ux TMUX_AUTO tab
+
+# 恢复默认共享 main
+set -Ue TMUX_AUTO
+```
+
+| TMUX_AUTO 取值 | 行为 |
+|----------------|------|
+| 未设置 / `main` | 所有标签页复用 `main` 会话 (已存在则 attach) |
+| `tab` / `per-tab` | 每个标签页新建独立会话，可用会话列表切换 |
+| `0` / `off` / `false` / `no` | 不自动进入 tmux |
+
+修改后重新链接并开新标签页验证：
+
+```bash
+dot restow fish
+```
+
+### 自定义 tmux 键位与外观
+
+```bash
+dot cd
+$EDITOR tmux/.config/tmux/tmux.conf   # 前缀、分屏、状态栏等
+dot restow tmux
+```
+
+已在 tmux 内时，改完按 `前缀 + r` 立即重载。前缀键保留 `Ctrl-b`（桌面端为
+`C-x`）；完整键位表与剪贴板说明见 [tmux 配置](./tmux.md)。
 
 ---
 

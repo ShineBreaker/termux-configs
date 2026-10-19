@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
+# termux-api-ready — 退出码 0 表示 Termux:API 应用可用。
+# 仅装了 termux-api 包、未装配套 App 时，termux-clipboard-* 会无限阻塞，
+# 所以先探测一次并缓存结果；装了 App 后删除缓存文件即可重新探测:
+#   rm -f ~/.cache/tmux-clipboard-api
+set -uo pipefail
+
+cache="${XDG_CACHE_HOME:-$HOME/.cache}/tmux-clipboard-api"
+
+if [ -r "$cache" ]; then
+  read -r v < "$cache" || v=""
+  [ "$v" = "1" ]
+  exit
+fi
+
+if command -v pm >/dev/null 2>&1 \
+  && pm list packages 2>/dev/null | grep -q '^package:com\.termux\.api$'; then
+  echo 1 > "$cache" 2>/dev/null || true
+  exit 0
+fi
+
+echo 0 > "$cache" 2>/dev/null || true
+exit 1

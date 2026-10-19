@@ -22,6 +22,7 @@ starship
 zoxide
 fzf
 zellij
+tmux
 atuin
 eza
 bat
