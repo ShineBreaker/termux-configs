@@ -19,18 +19,19 @@ abbr -a pkgu -- 'oma update && pkg upgrade'
 abbr -a pkgs -- 'oma search'
 abbr -a pkgl -- 'oma list'
 
-# Git 缩写 (g* 为移动端紧凑组合; cm/cmall/push/clone 与桌面保持一致)
+# Git 缩写 (统一用子命令词本身，如 push / pull / status；不再用 gp / gl 之类两字母组合)
+# diff 会遮蔽系统 diff，需要系统 diff 时用 command diff
 abbr -a g -- 'git'
-abbr -a gs -- 'git status'
-abbr -a ga -- 'git add'
-abbr -a gc -- 'git commit -m'
-abbr -a gp -- 'git push'
-abbr -a gl -- 'git pull'
-abbr -a gd -- 'git diff'
-abbr -a cm -- 'git commit'
+abbr -a status -- 'git status -sb'
+abbr -a add -- 'git add'
+abbr -a commit -- 'git commit'
 # 桌面为 git commit --all -S；Termux 默认不依赖 GPG 签名，如需签名自行加 -S
-abbr -a cmall -- 'git commit --all'
+abbr -a commitall -- 'git commit --all'
 abbr -a push -- 'git push'
+abbr -a pull -- 'git pull'
+abbr -a fetch -- 'git fetch'
+abbr -a diff -- 'git diff'
+abbr -a log -- 'git log'
 abbr -a clone -- 'git clone'
 
 # 其他缩写

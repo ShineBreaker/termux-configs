@@ -17,9 +17,8 @@
 	ui = auto
 
 [alias]
-	# 常用速查别名
-	st = status -sb
-	lg = log --oneline --graph --decorate
+	# 常用速查别名 (用词形式，与 shell 缩写的风格一致)
+	graph = log --oneline --graph --decorate
 	last = log -1 --stat
 	unstage = reset HEAD --
 	amend = commit --amend --no-edit

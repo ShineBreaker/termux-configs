@@ -191,16 +191,20 @@ termux-reload-settings
 | 命令 | 说明 |
 |------|------|
 | `g` | git |
-| `gs` | git status |
-| `ga` | git add |
-| `gc` | git commit -m |
-| `gp` | git push |
-| `gl` | git pull |
-| `gd` | git diff |
-| `cm` | git commit (打开模板) |
-| `cmall` | git commit --all |
+| `status` | git status -sb (简洁状态) |
+| `add` | git add |
+| `commit` | git commit (打开模板) |
+| `commitall` | git commit --all |
 | `push` | git push |
+| `pull` | git pull |
+| `fetch` | git fetch |
+| `diff` | git diff (系统 diff 用 `command diff`) |
+| `log` | git log |
 | `clone` | git clone |
+
+> 统一风格：git 缩写直接用子命令词本身（`push` / `pull` / `status`…），不再提供 `gp` / `gl`
+> 这类两字母组合；`git graph` / `git last` / `git amend` 等词形别名在
+> `~/.config/git/config` 里。
 
 ### 系统信息 (Fastfetch)
 | 命令 | 说明 |

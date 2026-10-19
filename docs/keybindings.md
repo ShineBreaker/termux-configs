@@ -50,15 +50,15 @@
 | 命令 | 说明 |
 |------|------|
 | `g` | git |
-| `gs` | git status |
-| `ga` | git add |
-| `gc` | git commit -m |
-| `gp` | git push |
-| `gl` | git pull |
-| `gd` | git diff |
-| `cm` | git commit (打开模板) |
-| `cmall` | git commit --all |
+| `status` | git status -sb (简洁状态) |
+| `add` | git add |
+| `commit` | git commit (打开模板) |
+| `commitall` | git commit --all |
 | `push` | git push |
+| `pull` | git pull |
+| `fetch` | git fetch |
+| `diff` | git diff (系统 diff 用 `command diff`) |
+| `log` | git log |
 | `clone` | git clone |
 
 ### 系统信息 (Fastfetch)

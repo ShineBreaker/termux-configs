@@ -1,7 +1,7 @@
 # Termux 优化配置项目 - AI Agent 工作指引
 
-> **版本**: 3.10  
-> **最后更新**: 2026-10-18  
+> **版本**: 3.12  
+> **最后更新**: 2026-10-19  
 > **项目目标**: 为 Android Termux 环境提供优化的 Fish Shell 配置，提升移动端终端使用体验
 
 ---
@@ -204,14 +204,15 @@ abbr -a 缩写 '完整命令'
 
 # 示例
 abbr -a g 'git'
-abbr -a gs 'git status'
+abbr -a push 'git push'
 ```
 
 **命名规范**:
 - 导航: `..`, `...`, `~`
 - 列表: `l`, `ll`, `la`, `lt`
 - 包管理: `pkgi`, `pkgu`, `pkgs`, `pkgl`
-- Git: `g`, `gs`, `ga`, `gc`, `gp`, `gl`, `gd`
+- Git: 直接用子命令词本身 —— `status`, `add`, `commit`, `commitall`, `push`, `pull`,
+  `fetch`, `diff`, `log`, `clone`（不再用 `gs` / `gp` / `gl` 这类两字母组合）
 
 ### 添加新函数
 
@@ -463,6 +464,7 @@ fastfetch --debug         # 调试模式
 | 2026-10-18 | 3.9 | tmux 状态栏右侧改为时间 + 内存占用 (`mem-status`)，移除无意义的 hostname/终端尺寸 |
 | 2026-10-18 | 3.10 | 新增自定义 Termux 登录提示 `motd.sh`：显示 Tailscale/tmux/Emacs·Pi/内存/dotfiles 状态；静态信息带 1 天缓存 |
 | 2026-10-19 | 3.11 | tmux 标签页改为「main 分组会话 + 可读唯一会话名」：新增 `scripts/tab-name`（形容词-动物命名、自动回收零客户端分组会话）与 `scripts/new-tab`（前缀 C 新建标签页）；状态栏/终端标题改用 `#S`、新增前缀 `N` 改名；`window-jump` 按 window_id 去重；MOTD 改列已附着的标签页名 |
+| 2026-10-19 | 3.12 | Git 缩写统一为子命令词形式（`push` / `pull` / `status` 等），移除 `gs` / `ga` / `gc` / `gp` / `gl` / `gd` / `cm` / `cmall`；git 别名 `st` / `lg` 改为 `graph` 并去掉 `st` |
 
 ---
 
