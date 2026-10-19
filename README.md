@@ -9,7 +9,7 @@
 | 特性 | 说明 |
 |------|------|
 | 🐟 **Fish Shell** | 现代化 Shell，自动补全、语法高亮、智能提示 |
-| 🧩 **会话复用** | 新标签页自动进入 tmux 共享会话 (`main`)，状态栏以 `main·N` 区分，断开/重启后可恢复 |
+| 🧩 **会话复用** | 新标签页自动进入 tmux，每个标签页有可读的唯一会话名 (如 `calm-otter`)，窗口/历史共享且断开后可恢复 |
 | 🧬 **Bash 环境继承** | 登录 Fish 时按 bash 优先级导入用户 profile (`~/.bash_profile` → `~/.bash_login` → `~/.profile`) |
 | 🔎 **历史搜索** | Atuin 保存命令历史，Ctrl-R / ↑ 模糊搜索，弥补手机输入成本 |
 | 🛠️ **现代 CLI** | eza / bat / dust / fd / rg 别名，装了对应包自动启用 |
@@ -83,7 +83,7 @@ termux-reload-settings
 │       │   ├── 00-init.fish      # 工具集成 (zoxide / starship / fzf / atuin)
 │       │   ├── 05-env.fish       # 环境变量与 PATH
 │       │   ├── 10-aliases.fish   # 现代 CLI 别名 (eza / bat / dust / fd / rg)
-│       │   ├── 15-tmux.fish      # 自动进入 tmux 会话 (main 共享 / tab 独立)
+│       │   ├── 15-tmux.fish      # 自动进入 tmux (main 分组共享 / tab 独立)
 │       │   ├── 20-startup.fish   # 欢迎消息与提示符
 │       │   ├── 99-abbr.fish      # 移动友好缩写
 │       │   └── zz-bash-env.fish  # 继承 Bash 登录环境 (fenv，omf 提供)
@@ -113,7 +113,7 @@ termux-reload-settings
 ├── tmux/                   # tmux 终端复用配置
 │   └── .config/tmux/
 │       ├── tmux.conf             # 键位与外观 (前缀 C-b)
-│       └── scripts/              # which-key / window-jump / 剪贴板脚本
+│       └── scripts/              # tab-name / new-tab / which-key / window-jump / 剪贴板
 ├── termux/                 # Termux 应用配置
 │   └── .termux/
 │       ├── termux.properties     # 应用设置
@@ -374,7 +374,7 @@ git push
 - **Atuin 历史搜索**: `pkg install atuin`，安装后 Ctrl-R / ↑ 弹出模糊搜索（排在 fzf 之后接管）
 - **现代 CLI 别名**: `pkg install eza bat dust fd`（ripgrep 已内置），装上后 `ls/cat/du/find/grep` 自动替换为现代工具，见 `conf.d/10-aliases.fish`
 - **Helix 编辑器**: 已随 `packages.txt` 安装，配置启用触摸定位光标、失焦自动保存等移动端友好项；主题 `transparent` 跟随终端背景，`languages.toml` 为 fish/clang 启用保存即格式化
-- **tmux 会话复用**: `tmux` 已随 `packages.txt` 安装；新标签页自动进入名为 `main` 的共享会话，关掉标签页/重启 Termux 后会话仍在。状态栏用 `main·<N>` 区分同时打开的标签页（N 为客户端 PTY 号），右侧显示时间与内存占用。配置包 `tmux` 提供移动端键位（前缀 `Ctrl-b`）：`?` 帮助浮窗、`s` 会话/窗口选择器、`f` fzf 跨会话跳转、`\`/`-` 分屏、`y` 复制（OSC52 / Termux:API）。`TMUX_AUTO=0 fish` 跳过自动进入，`TMUX_AUTO=tab fish` 每个标签页独立；详见 [tmux 配置](docs/tmux.md)
+- **tmux 会话复用**: `tmux` 已随 `packages.txt` 安装；新标签页自动进入 tmux，每个标签页拿到一个人类可读且唯一的会话名（如 `calm-otter`，由 `scripts/tab-name` 生成，显示在状态栏左上角与终端标题）。默认这些标签页是 `main` 的分组会话：窗口与历史共享、各自独立选中窗口，关掉标签页/重启 Termux 后仍在；状态栏右侧显示时间与内存占用。配置包 `tmux` 提供移动端键位（前缀 `Ctrl-b`）：`?` 帮助浮窗、`s` 会话/窗口选择器、`f` fzf 跨会话跳转、`C` 新建标签页、`N` 重命名标签页、`\`/`-` 分屏、`y` 复制（OSC52 / Termux:API）。`TMUX_AUTO=0 fish` 跳过自动进入，`TMUX_AUTO=tab fish` 每个标签页完全独立，`TMUX_TAB_NAME=work fish` 指定标签页名；详见 [tmux 配置](docs/tmux.md)
 - **Git 规范**: 链接 `git` 包后全局启用 Conventional Commits 提交模板、常用别名与全局忽略（不含 user.name/email）
 - **Bash 环境继承**: 安装脚本自动装好 [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish) 与 [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时用 `fenv` 按 bash 优先级依次尝试 `~/.bash_profile`/`~/.bash_login`/`~/.profile` 导入用户环境（系统级环境已由 Termux 自身提供），未安装时静默跳过（见 `conf.d/zz-bash-env.fish`）
 

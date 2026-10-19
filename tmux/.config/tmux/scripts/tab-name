@@ -1,0 +1,52 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
+# SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
+# tab-name — 为新建的 tmux 标签页生成一个人类可读、当前 server 内唯一的会话名。
+#
+# 输出形如 calm-otter 的「形容词-动物」短名：比 pts/N 好记，也不会和已有会话
+# 撞名（撞了就重抽）。会话名会出现在状态栏左侧、终端标题、`tmux ls`、MOTD 和
+# 会话列表里，相当于给每个标签页挂一个标识符。
+#
+# 副作用：顺手回收残留的分组会话（见 tmux.conf 的分组说明）。Termux 被系统
+# 强杀时客户端来不及正常 detach，分组会话会零客户端地留在后台，下次开标签页
+# 时清掉，避免 `tmux ls` 越攒越长。
+#
+# 环境变量：
+#   TMUX_TAB_NAME  直接指定名字（不做去重，重名时由 tmux 报错）
+
+set -u
+
+# 想加词直接往数组里塞（尽量选短、无歧义的英文单词）
+adjs=(calm bold keen warm neat swift quiet brave crisp tidy mellow sunny rapid cosy)
+animals=(otter fox lynx panda koala heron raven moose gecko squid crane bison tapir wombat badger magpie)
+
+if [ -n "${TMUX_TAB_NAME:-}" ]; then
+    printf '%s\n' "$TMUX_TAB_NAME"
+    exit 0
+fi
+
+# 回收残留：零客户端 + 属于分组（session_group 非空）+ 不是锚点 main
+# 用 tab 作分隔符，会话名里带空格（前缀 N 改名）也不会解析错位
+while IFS=$'\t' read -r name attached group; do
+    [ -n "$name" ] || continue
+    [ -n "$group" ] || continue
+    [ "$attached" = 0 ] || continue
+    [ "$name" = main ] && continue
+    tmux kill-session -t "=$name" 2>/dev/null
+done < <(tmux list-sessions -F $'#{session_name}\t#{session_attached}\t#{session_group}' 2>/dev/null)
+
+taken=$(tmux list-sessions -F '#{session_name}' 2>/dev/null)
+
+for _ in $(seq 40); do
+    candidate="${adjs[RANDOM % ${#adjs[@]}]}-${animals[RANDOM % ${#animals[@]}]}"
+    if ! printf '%s\n' "$taken" | grep -qxF "$candidate"; then
+        printf '%s\n' "$candidate"
+        exit 0
+    fi
+done
+
+# 词库抽 40 次都撞名：退回带随机数的名字，保证唯一
+printf 'tab-%s\n' "$RANDOM"

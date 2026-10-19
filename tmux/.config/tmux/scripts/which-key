@@ -10,6 +10,7 @@
 cat <<'EOF'
 
   tmux 快捷键速查  前缀 = Ctrl-b  (Termux: 音量+ 与 b 同按)
+  每个标签页是一个分组会话，名字如 calm-otter，显示在左上角
 
   基础                                  窗格
     r      重新加载配置                   \      左右分屏
@@ -21,9 +22,10 @@ cat <<'EOF'
 
   窗口 / 会话                           复制模式
     c      新建窗口                       [ 或 Esc  进入复制模式
-    C      新建会话                       v         开始选择
-    X      关闭窗口                       y / Enter 复制 (OSC52 / Termux:API)
-    K      关闭会话                       Esc       退出复制模式
+    C      新建标签页 (自动命名)          v         开始选择
+    N      重命名标签页                   y / Enter 复制 (OSC52 / Termux:API)
+    X      关闭窗口                       Esc       退出复制模式
+    K      关闭会话
     0-9 / Alt+1~5   切换窗口
 
   粘贴

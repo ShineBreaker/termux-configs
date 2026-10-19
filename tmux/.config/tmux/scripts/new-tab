@@ -1,0 +1,32 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
+# SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
+# new-tab — 在 tmux 内新建一个标签页会话（前缀 C），沿用 tab-name 的可读命名。
+#
+# 与 Termux 新标签页保持一致：默认挂到 main 的分组里（共享窗口与历史），
+# 若 main 不存在则挂到当前会话所在的分组，再不行才建一个独立会话。
+# 由 tmux.conf 的 `bind C` 以 run-shell 调用，因此能拿到当前客户端/窗格上下文。
+
+set -u
+
+here=$(dirname "$(readlink -f "$0")")
+
+name=$(bash "$here/tab-name" 2>/dev/null) || exit 0
+[ -n "$name" ] || exit 0
+
+group=$(tmux display -p '#{session_group}' 2>/dev/null)
+[ -n "$group" ] || group=$(tmux display -p '#{session_name}' 2>/dev/null)
+
+# 新窗口/会话沿用当前窗格路径（分组会话不新建窗口，路径只在兜底时生效）
+cwd=$(tmux display -p '#{pane_current_path}' 2>/dev/null)
+[ -n "$cwd" ] || cwd=$PWD
+
+tmux new-session -d -c "$cwd" -t "$group" -s "$name" 2>/dev/null \
+    || tmux new-session -d -c "$cwd" -s "$name" 2>/dev/null \
+    || exit 0
+
+tmux switch-client -t "$name" 2>/dev/null || true
+exit 0

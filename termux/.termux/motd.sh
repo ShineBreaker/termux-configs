@@ -86,12 +86,11 @@ if command -v tailscale >/dev/null 2>&1; then
     kv Tailscale "$ts_ip"
 fi
 
-# ---- tmux 会话 ----
+# ---- tmux 标签页 (只列已附着的会话名；main×N 表示还有旧标签页直接挂在 main 上) ----
 if command -v tmux >/dev/null 2>&1; then
-    tmux_info=$(timeout 1 tmux list-sessions \
-        -F '#{session_name} #{session_windows}w/#{session_attached}c' 2>/dev/null \
-        | tr '\n' ' ')
-    kv tmux "${tmux_info% }"
+    tmux_info=$(timeout 1 tmux list-clients -F '#{client_session}' 2>/dev/null \
+        | awk '{ n[$0]++ } END { for (s in n) printf "%s%s", (c++ ? " " : ""), (n[s] > 1 ? s "×" n[s] : s) }')
+    kv tmux "$tmux_info"
 fi
 
 # ---- Emacs / Pi (来自缓存) ----

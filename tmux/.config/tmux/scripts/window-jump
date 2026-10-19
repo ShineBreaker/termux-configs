@@ -10,9 +10,15 @@ set -euo pipefail
 
 current_session=$(tmux display -p "#{session_name}")
 
-windows=$(tmux list-windows -a -F \
-  $'#{session_name}\t#{window_index}\t#{window_name}\t#{pane_current_path}\t#{window_panes}' \
-  2>/dev/null) || true
+# 每个标签页都是 main 的分组会话，同一批窗口会出现多次；按 window_id 去重，
+# 并让当前标签页的那一份排在前面（跳转时留在本标签页，不改会话名）。
+fmt=$'#{window_id}\t#{session_name}\t#{window_index}\t#{window_name}\t#{pane_current_path}\t#{window_panes}'
+windows=$(
+  {
+    tmux list-windows -t "$current_session" -F "$fmt" 2>/dev/null
+    tmux list-windows -a -F "$fmt" 2>/dev/null
+  } | awk -F'\t' '!seen[$1]++'
+) || true
 
 if [[ -z "$windows" ]]; then
   tmux display-message "没有可跳转的窗口"
@@ -20,7 +26,7 @@ if [[ -z "$windows" ]]; then
 fi
 
 choices=()
-while IFS=$'\t' read -r session idx name path panes; do
+while IFS=$'\t' read -r _win session idx name path panes; do
   pane_label="pane"
   [[ "$panes" -gt 1 ]] && pane_label="panes"
   short_path="${path%/}"

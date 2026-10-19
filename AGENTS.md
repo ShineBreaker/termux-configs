@@ -53,7 +53,7 @@
 │       │   ├── 00-init.fish      # 工具集成 (zoxide / starship / fzf / atuin，已安装则启用)
 │       │   ├── 05-env.fish       # 环境变量与 PATH
 │       │   ├── 10-aliases.fish   # 现代 CLI 别名 (eza / bat / dust / fd / rg)
-│       │   ├── 15-tmux.fish      # 自动进入 tmux 会话 (main 共享 / tab 独立)
+│       │   ├── 15-tmux.fish      # 自动进入 tmux (main 分组共享 / tab 独立)
 │       │   ├── 20-startup.fish   # fish_greeting (fastfetch) 与提示符
 │       │   ├── 99-abbr.fish      # 移动友好缩写
 │       │   └── zz-bash-env.fish  # 继承 Bash 登录环境 (fenv，须排在 omf.fish 之后)
@@ -83,7 +83,7 @@
 ├── tmux/                     # tmux 终端复用配置包 (前缀 C-b)
 │   └── .config/tmux/
 │       ├── tmux.conf             # 键位、状态栏、复制模式
-│       └── scripts/              # which-key / window-jump / 剪贴板脚本
+│       └── scripts/              # tab-name / new-tab / which-key / window-jump / 剪贴板脚本
 ├── termux/                   # Termux 配置包
 │   └── .termux/
 │       ├── termux.properties     # 应用设置
@@ -190,6 +190,7 @@ type -q starship; and starship init fish | source
 | 安装流程 | `README.md`、`docs/installation.md`、`setup.sh` 帮助文本 |
 | Termux MOTD | `README.md`、`docs/customization.md`、`docs/troubleshooting.md` |
 | tmux 自动进入 | `README.md`、`docs/keybindings.md`、`docs/customization.md`、`docs/troubleshooting.md`、`cheat.fish` |
+| tmux 标签页命名/分组 | `docs/tmux.md`、`docs/keybindings.md`、`docs/customization.md`、`docs/troubleshooting.md`、`README.md`、`cheat.fish`、`motd.sh` |
 | tmux 键位/脚本 | `docs/tmux.md`、`docs/keybindings.md`、`cheat.fish` |
 | just 指令 | `README.md` 指令表、`docs/keybindings.md`、`cheat.fish` |
 
@@ -461,6 +462,7 @@ fastfetch --debug         # 调试模式
 | 2026-10-18 | 3.8 | 修复 tmux 顶栏条件样式含逗号导致渲染出字面 `bold]` 的问题；状态栏与终端标题加客户端短号 (`main·N`) 区分标签页；`TMUX_AUTO=tab` 改用自动短名 |
 | 2026-10-18 | 3.9 | tmux 状态栏右侧改为时间 + 内存占用 (`mem-status`)，移除无意义的 hostname/终端尺寸 |
 | 2026-10-18 | 3.10 | 新增自定义 Termux 登录提示 `motd.sh`：显示 Tailscale/tmux/Emacs·Pi/内存/dotfiles 状态；静态信息带 1 天缓存 |
+| 2026-10-19 | 3.11 | tmux 标签页改为「main 分组会话 + 可读唯一会话名」：新增 `scripts/tab-name`（形容词-动物命名、自动回收零客户端分组会话）与 `scripts/new-tab`（前缀 C 新建标签页）；状态栏/终端标题改用 `#S`、新增前缀 `N` 改名；`window-jump` 按 window_id 去重；MOTD 改列已附着的标签页名 |
 
 ---
 

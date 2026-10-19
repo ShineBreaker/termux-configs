@@ -21,7 +21,7 @@ fishrc
 | `conf.d/00-init.fish` | 工具集成 (zoxide / starship / fzf / atuin) |
 | `conf.d/05-env.fish` | 环境变量与 PATH |
 | `conf.d/10-aliases.fish` | 现代 CLI 别名 (eza / bat / dust / fd / rg) |
-| `conf.d/15-tmux.fish` | 自动进入 tmux 会话 (main 共享 / tab 独立) |
+| `conf.d/15-tmux.fish` | 自动进入 tmux 会话 (main 分组共享 / tab 独立) |
 | `conf.d/20-startup.fish` | 欢迎消息与提示符 |
 | `conf.d/99-abbr.fish` | 移动友好缩写 |
 | `functions/` | 自定义函数 (含 `retry`) |
@@ -40,27 +40,42 @@ dot restow fish
 
 ## 🧩 调整 tmux 会话复用
 
-`conf.d/15-tmux.fish` 会在交互式 Fish 启动时自动接入 tmux，默认所有标签页共享名为 `main` 的会话。
+`conf.d/15-tmux.fish` 会在交互式 Fish 启动时自动接入 tmux。每个标签页会拿到一个
+人类可读、在 server 内唯一的会话名（如 `calm-otter`，由 `scripts/tab-name` 生成），
+状态栏左上角与终端标题都显示它。默认这些标签页是 `main` 的分组会话：窗口和历史
+共享，但各自的当前窗口独立，窗口内容在关掉标签页/重启后仍然在。
 
 ```bash
 # 临时绕过自动进入 (只想开一个普通 Fish)
 TMUX_AUTO=0 fish
 
-# 临时改为每标签页独立会话
+# 临时改为每标签页完全独立 (窗口不共享)
 TMUX_AUTO=tab fish
+
+# 临时指定本标签页的名字
+TMUX_TAB_NAME=work fish
 
 # 永久改为每标签页独立 (写入 fish universal 变量)
 set -Ux TMUX_AUTO tab
 
-# 恢复默认共享 main
+# 恢复默认 (共享 main 的窗口)
 set -Ue TMUX_AUTO
 ```
 
 | TMUX_AUTO 取值 | 行为 |
 |----------------|------|
-| 未设置 / `main` | 所有标签页复用 `main` 会话 (已存在则 attach) |
-| `tab` / `per-tab` | 每个标签页新建独立会话，可用会话列表切换 |
+| 未设置 / `main` | 每标签页一个分组会话，共享 `main` 的窗口/历史 |
+| `tab` / `per-tab` | 每个标签页新建完全独立的会话，可用会话列表切换 |
 | `0` / `off` / `false` / `no` | 不自动进入 tmux |
+
+命名与改名：
+
+| 需求 | 做法 |
+|------|------|
+| 换个词库/前缀 | 编辑 `~/.config/tmux/scripts/tab-name` 里的词数组 |
+| tmux 内新建标签页 | 前缀 `C` |
+| 给当前标签页改名 | 前缀 `N` |
+| 看所有标签页 | `tmux ls` |
 
 修改后重新链接并开新标签页验证：
 
@@ -122,7 +137,7 @@ $EDITOR termux/.termux/motd.sh   # 编辑内容
 dot restow termux                # 重新链接
 ```
 
-当前 MOTD 显示：Termux 版本 / Android / 设备、Tailscale IP、tmux 会话、
+当前 MOTD 显示：Termux 版本 / Android / 设备、Tailscale IP、tmux 标签页名、
 Emacs · Pi 版本、内存占用、dotfiles 仓库状态与时间。修改后直接开新标签页验证。
 
 静态信息（设备、工具版本、仓库路径）会缓存在 `~/.cache/termux-motd-cache`，

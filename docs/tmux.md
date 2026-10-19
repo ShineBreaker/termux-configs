@@ -18,26 +18,45 @@ Termux 每个新标签页启动交互式 Fish 时，若已在 tmux 外，会自�
 
 | `TMUX_AUTO` | 行为 |
 |-------------|------|
-| 未设置 / `main` | 所有标签页复用 `main` 会话（已存在则 attach） |
-| `tab` / `per-tab` | 每个标签页新建独立会话 |
+| 未设置 / `main` | 每个标签页一个分组会话，共享 `main` 的窗口与历史（各自独立选中窗口） |
+| `tab` / `per-tab` | 每个标签页新建完全独立的会话（窗口不共享） |
 | `0` / `off` / `false` / `no` | 不自动进入，保留普通 Fish |
 
 ```bash
 TMUX_AUTO=0 fish    # 临时开一个普通 Fish
 TMUX_AUTO=tab fish  # 临时每标签页独立
+TMUX_TAB_NAME=work fish  # 临时指定本标签页的名字
 ```
 
 详见 `docs/customization.md` 的「调整 tmux 会话复用」。
 
 ---
 
-## 🪟 多标签页如何区分
+## 🏷️ 标签页标识符（会话名）
 
-所有标签页共享同一个 `main` 会话，状态栏左侧会显示 `main·<N>`：`<N>` 是当前标签页
-对应的 tmux 客户端短号（`#{b:client_tty}`，即 `/dev/pts/N` 的 N）。它不是一个 0/1/2 的
-标签计数器，而是 Termux/Android 分配的 PTY 号，所以可能跳号（如 0、2、4）或重用；
-只要标签页开着，这个号就固定不变，且同时打开的标签页不会重复。终端标题也会变成
-`main·N:窗口`。
+每个标签页都是一个**独立会话**，会话名由 `scripts/tab-name` 生成：`形容词-动物` 的
+短名，如 `calm-otter`、`bold-fox`。它在当前 tmux server 内保证唯一（与已有会话撞名
+就重抽，词库抽不到就退回 `tab-<随机数>`），比 `pts/N` 之类的客户端号好记，也便于在
+好几个标签页之间指认。
+
+这个标识符会出现在：状态栏左上角（`#S`）、终端标题（`名字:窗口`）、`tmux ls`、
+前缀 `s` 的会话列表、前缀 `f` 的 fzf 跳转、以及登录 MOTD 的 tmux 一行。
+
+默认模式 (`main`) 下，标签页会话是 `main` 的**分组会话**（tmux session group）：
+窗口与历史共享，但每个标签页有自己的当前窗口；`main` 本身没有客户端，只作为窗口
+容器保留，所以关掉全部标签页、重启 Termux 之后窗口仍然在。
+
+| 需求 | 做法 |
+|------|------|
+| 新标签页自动命名 | `~/.config/tmux/scripts/tab-name`（`conf.d/15-tmux.fish` 调用） |
+| 临时指定名字 | `TMUX_TAB_NAME=work fish` |
+| tmux 内新建标签页 | 前缀 `C`（`scripts/new-tab`，同样自动取名并挂进当前分组） |
+| 给当前标签页改名 | 前缀 `N`（只改本标签页的会话名） |
+| 看当前有哪些标签页 | `tmux ls`，或 MOTD 的 tmux 一行 |
+
+残留清理：Termux 被系统强杀时客户端来不及正常 detach，分组会话会零客户端地留在
+后台；下一次开标签页取名字时会顺带回收这些分组会话（`main` 不受影响），所以
+`tmux ls` 不会越攒越长。
 
 状态栏右侧显示当前时间 (`HH:MM`) 与内存占用 (`RAM xx%`)，取代了没意义的默认 hostname；
 时间由 tmux 原生 strftime 展开，内存由 `scripts/mem-status` 读 `/proc/meminfo` 计算。
@@ -56,7 +75,8 @@ TMUX_AUTO=tab fish  # 临时每标签页独立
 | 前缀 `\` | 左右分屏（保持当前路径） |
 | 前缀 `-` | 上下分屏（保持当前路径） |
 | 前缀 `h` `j` `k` `l` | 切换窗格（Vi 风格） |
-| 前缀 `c` / `C` | 新建窗口 / 新建会话 |
+| 前缀 `c` / `C` | 新建窗口 / 新建标签页（自动取名，挂进当前分组） |
+| 前缀 `N` | 给当前标签页改名 |
 | 前缀 `x` / `X` / `K` | 关闭窗格 / 窗口 / 会话 |
 | 前缀 `s` | 会话·窗口浮窗选择器（`choose-tree`） |
 | 前缀 `f` | fzf 跨会话模糊跳转窗口 |
@@ -114,12 +134,14 @@ TMUX_AUTO=tab fish  # 临时每标签页独立
 
 ## 🧰 脚本
 
-`~/.config/tmux/scripts/`（首行均带 SPDX 许可，移植自 Guix-configs）：
+`~/.config/tmux/scripts/`（均带 SPDX 许可；`which-key` / `window-jump` / 剪贴板脚本移植自 Guix-configs）：
 
 | 脚本 | 用途 |
 |------|------|
+| `tab-name` | 生成人类可读且唯一的标签页会话名，顺手回收残留的分组会话 |
+| `new-tab` | 前缀 `C` 新建标签页（自动取名，挂进当前分组并切过去） |
 | `which-key` | 前缀 `?` 的快捷键速查浮窗 |
-| `window-jump` | 前缀 `f`，fzf 列出所有会话的窗口并跳转 |
+| `window-jump` | 前缀 `f`，fzf 列出窗口并跳转（分组会话按 window_id 去重） |
 | `clipboard-copy` | 复制钩子：写 Android 剪贴板（可选），永不阻塞 |
 | `paste-clipboard` | 粘贴钩子：Android 剪贴板 → tmux 缓冲 → 粘贴 |
 | `termux-api-ready` | 探测 Termux:API App 是否可用（带缓存） |
