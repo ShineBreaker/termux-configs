@@ -34,8 +34,13 @@ TMUX_AUTO=tab fish  # 临时每标签页独立
 ## 🪟 多标签页如何区分
 
 所有标签页共享同一个 `main` 会话，状态栏左侧会显示 `main·<N>`：`<N>` 是当前标签页
-对应的 tmux 客户端短号（`#{b:client_tty}`，即 `/dev/pts/N` 的 N）。同时打开的标签页
-编号互不相同，且只有一个数字，小屏也不占地方；终端标题也会变成 `main·N:窗口`。
+对应的 tmux 客户端短号（`#{b:client_tty}`，即 `/dev/pts/N` 的 N）。它不是一个 0/1/2 的
+标签计数器，而是 Termux/Android 分配的 PTY 号，所以可能跳号（如 0、2、4）或重用；
+只要标签页开着，这个号就固定不变，且同时打开的标签页不会重复。终端标题也会变成
+`main·N:窗口`。
+
+状态栏右侧显示当前时间 (`HH:MM`) 与内存占用 (`RAM xx%`)，取代了没意义的默认 hostname；
+时间由 tmux 原生 strftime 展开，内存由 `scripts/mem-status` 读 `/proc/meminfo` 计算。
 
 ---
 

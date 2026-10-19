@@ -372,7 +372,7 @@ git push
 - **Atuin 历史搜索**: `pkg install atuin`，安装后 Ctrl-R / ↑ 弹出模糊搜索（排在 fzf 之后接管）
 - **现代 CLI 别名**: `pkg install eza bat dust fd`（ripgrep 已内置），装上后 `ls/cat/du/find/grep` 自动替换为现代工具，见 `conf.d/10-aliases.fish`
 - **Helix 编辑器**: 已随 `packages.txt` 安装，配置启用触摸定位光标、失焦自动保存等移动端友好项；主题 `transparent` 跟随终端背景，`languages.toml` 为 fish/clang 启用保存即格式化
-- **tmux 会话复用**: `tmux` 已随 `packages.txt` 安装；新标签页自动进入名为 `main` 的共享会话，关掉标签页/重启 Termux 后会话仍在。状态栏用 `main·<N>` 区分同时打开的标签页（N 为客户端短号）。配置包 `tmux` 提供移动端键位（前缀 `Ctrl-b`）：`?` 帮助浮窗、`s` 会话/窗口选择器、`f` fzf 跨会话跳转、`\`/`-` 分屏、`y` 复制（OSC52 / Termux:API）。`TMUX_AUTO=0 fish` 跳过自动进入，`TMUX_AUTO=tab fish` 每个标签页独立；详见 [tmux 配置](docs/tmux.md)
+- **tmux 会话复用**: `tmux` 已随 `packages.txt` 安装；新标签页自动进入名为 `main` 的共享会话，关掉标签页/重启 Termux 后会话仍在。状态栏用 `main·<N>` 区分同时打开的标签页（N 为客户端 PTY 号），右侧显示时间与内存占用。配置包 `tmux` 提供移动端键位（前缀 `Ctrl-b`）：`?` 帮助浮窗、`s` 会话/窗口选择器、`f` fzf 跨会话跳转、`\`/`-` 分屏、`y` 复制（OSC52 / Termux:API）。`TMUX_AUTO=0 fish` 跳过自动进入，`TMUX_AUTO=tab fish` 每个标签页独立；详见 [tmux 配置](docs/tmux.md)
 - **Git 规范**: 链接 `git` 包后全局启用 Conventional Commits 提交模板、常用别名与全局忽略（不含 user.name/email）
 - **Bash 环境继承**: 安装脚本自动装好 [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish) 与 [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时用 `fenv` 按 bash 优先级依次尝试 `~/.bash_profile`/`~/.bash_login`/`~/.profile` 导入用户环境（系统级环境已由 Termux 自身提供），未安装时静默跳过（见 `conf.d/zz-bash-env.fish`）
 

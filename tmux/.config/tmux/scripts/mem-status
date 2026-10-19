@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
+# mem-status — 输出内存占用百分比供 tmux 状态栏使用，例如 "RAM 69%"。
+# 用 /proc/meminfo 计算 (total-available)/total，不依赖 free/termux-api。
+set -uo pipefail
+
+awk '
+  /MemTotal/     { t = $2 }
+  /MemAvailable/ { a = $2 }
+  END {
+    if (t > 0) printf "RAM %d%%", (t - a) * 100 / t
+    else       printf "RAM --"
+  }
+' /proc/meminfo

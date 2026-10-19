@@ -1,6 +1,6 @@
 # Termux 优化配置项目 - AI Agent 工作指引
 
-> **版本**: 3.8  
+> **版本**: 3.9  
 > **最后更新**: 2026-10-18  
 > **项目目标**: 为 Android Termux 环境提供优化的 Fish Shell 配置，提升移动端终端使用体验
 
@@ -457,6 +457,7 @@ fastfetch --debug         # 调试模式
 | 2026-10-18 | 3.6 | 新增 tmux 自动进入 (`conf.d/15-tmux.fish`)：默认共享 main 会话，TMUX_AUTO 可切 tab 独立或禁用 |
 | 2026-10-18 | 3.7 | 新增 `tmux` 配置包：移植 Guix-configs 键位 (前缀改为 C-b)、`?` 速查与 `f` fzf 窗口跳转；剪贴板用 OSC52 + 可选 Termux:API (不阻塞) |
 | 2026-10-18 | 3.8 | 修复 tmux 顶栏条件样式含逗号导致渲染出字面 `bold]` 的问题；状态栏与终端标题加客户端短号 (`main·N`) 区分标签页；`TMUX_AUTO=tab` 改用自动短名 |
+| 2026-10-18 | 3.9 | tmux 状态栏右侧改为时间 + 内存占用 (`mem-status`)，移除无意义的 hostname/终端尺寸 |
 
 ---
 
