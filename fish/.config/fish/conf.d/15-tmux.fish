@@ -16,9 +16,8 @@ if status is-interactive; and not set -q TMUX; and type -q tmux
         case 0 off false no
             # 显式禁用: 保持普通 Fish
         case tab per-tab
-            # 每标签页独立会话；名字带时间戳 + fish PID，避免重名
-            set -l ses_name termux-(date +%m%d-%H%M%S)-$fish_pid
-            exec tmux new-session -s $ses_name
+            # 每标签页独立会话；让 tmux 自动命名 (0、1、2…)，短且不会重名
+            exec tmux new-session
         case '*'
             # 复用 main 会话: 已存在则 attach，否则新建
             exec tmux new-session -A -s main
