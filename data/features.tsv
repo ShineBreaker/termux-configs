@@ -1,0 +1,20 @@
+# 项目特性 —— 唯一真相源
+#
+# 列: 特性 / 说明 (README 与 docs/index.md 的特性表由 tools/gen-docs 生成)
+
+🐟 Fish Shell	现代化 Shell，自动补全、语法高亮、智能提示
+🧩 会话复用	新标签页自动进入 tmux，每个标签页有可读的唯一会话名 (如 `calm-otter`)，窗口/历史共享且断开后可恢复
+🧬 Bash 环境继承	登录 Fish 时按 bash 优先级导入用户 profile (`~/.bash_profile` → `~/.bash_login` → `~/.profile`)
+🔎 历史搜索	Atuin 保存命令历史，Ctrl-R / ↑ 模糊搜索，弥补手机输入成本
+🛠️ 现代 CLI	eza / bat / dust / fd / rg 别名，装了对应包自动启用
+💅 精致提示符	Starship 单行提示符，小屏不浪费行宽
+📝 Helix 编辑器	移动端友好配置，支持触摸点击定位光标；透明主题跟随终端背景
+📐 Git 规范	Conventional Commits 提交模板 + 常用别名 + 全局忽略 (不含身份)
+⌨️ 快捷键栏	Termux 默认快捷键栏，仅微调样式选项
+🪧 登录提示	自定义 MOTD：Tailscale / tmux / Emacs / Pi / 内存 / 仓库状态
+📊 Fastfetch	启动显示系统信息，小屏可用紧凑模式
+⚡ 快捷命令	大量缩写命令，减少移动端输入负担
+🔧 Stow 管理	使用 GNU Stow 管理配置，易于维护和同步
+🧭 自动定位	`dot` 命令通过软链接自动找到仓库，克隆位置不限
+⚡ 一键指令	`just` 封装安装、重链、文档生成等常用操作
+📱 移动优先	所有配置针对小屏幕优化

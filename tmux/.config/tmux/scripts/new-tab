@@ -3,6 +3,8 @@
 # SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
 #
 # SPDX-License-Identifier: MIT
+#
+# desc: 前缀 C 新建标签页（自动取名，挂进当前分组并切过去）
 
 # new-tab — 在 tmux 内新建一个标签页会话（前缀 C），沿用 tab-name 的可读命名。
 #

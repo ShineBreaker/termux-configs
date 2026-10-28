@@ -14,26 +14,31 @@
 fishrc
 ```
 
-打开配置入口文件，各功能的实际位置见文件内注释：
+打开配置入口文件，各功能的实际位置见文件内注释。
 
-| 文件 | 功能 |
-|------|------|
-| `conf.d/00-init.fish` | 工具集成 (zoxide / starship / fzf / atuin) |
-| `conf.d/05-env.fish` | 环境变量与 PATH |
-| `conf.d/10-aliases.fish` | 现代 CLI 别名 (eza / bat / dust / fd / rg) |
-| `conf.d/15-tmux.fish` | 自动进入 tmux 会话 (main 分组共享 / tab 独立) |
-| `conf.d/20-startup.fish` | 欢迎消息与提示符 |
-| `conf.d/99-abbr.fish` | 移动友好缩写 |
-| `functions/` | 自定义函数 (含 `retry`) |
+**改之前先看这张表——多数改动只需动一个文件：**
+
+| 想改什么 | 只改这个文件 | 生效方式 |
+|----------|--------------|----------|
+| 缩写 | `fish/.config/fish/data/abbr.tsv` | `dot restow fish` + `just docs` |
+| 别名 (现代 CLI) | `fish/.config/fish/data/alias.tsv` | `dot restow fish` + `just docs` |
+| Fish 函数 | `fish/.config/fish/functions/*.fish` | `dot restow fish` + `just docs` |
+| 配置包 | `data/packages.tsv` (+ 新建目录) | `just docs` |
+| just 指令 | `justfile` | `just docs` |
+| tmux 键位 | `tmux/.config/tmux/tmux.conf` 的 `#@` 注解 | `dot restow tmux` + `just docs` |
+| 文档表格 / cheat | 以上数据文件（生成） | `just docs` |
+
+`conf.d/99-abbr.fish` 与 `conf.d/10-aliases.fish` 现在只是**加载器**（读上表里的
+`data/*.tsv`），不要直接往里加定义，否则 `cheat` 与文档不会同步。
 
 ### 方式二：直接编辑仓库文件
 
 ```bash
 dot cd
-$EDITOR fish/.config/fish/conf.d/99-abbr.fish
+$EDITOR fish/.config/fish/data/abbr.tsv   # 例：加一条缩写
 
-# 重新链接
-dot restow fish
+dot restow fish      # 重新链接，运行时生效
+just docs            # 同步 README/docs/cheat
 ```
 
 ---
@@ -152,26 +157,33 @@ TERMUX_HUSHLOGIN=1 fish       # 单次关闭
 
 ---
 
-## ➕ 添加自定义别名
+## ➕ 添加自定义缩写 / 别名
 
-编辑 `fish/.config/fish/conf.d/99-abbr.fish`，添加：
+缩写写在 `fish/.config/fish/data/abbr.tsv`，别名写在
+`fish/.config/fish/data/alias.tsv`；两者格式相同（制表符分隔）：
 
-```fish
-abbr -a 别名 '命令'
+```
+<分类>	<名字>	<展开>	<说明>	<条件>     # 缩写
+<名字>	<展开>	<说明>	<条件>              # 别名
 ```
 
-示例：
+示例（加一行即可）：
 
-```fish
-abbr -a gco 'git checkout'
-abbr -a gb 'git branch'
-abbr -a glg 'git log --oneline --graph'
+```
+🔀 Git	gco	git checkout	检出分支	-
+🔀 Git	graph	git log --oneline --graph	图形化历史	-
 ```
 
-然后重新链接：
+说明：
+
+- 条件列 `-` = 始终启用；填命令名 = 该命令已安装才启用；`!命令名` = 未安装才启用。
+- 别名在管道 / 命令替换同样生效；缩写只在命令行首展开，纯提速用缩写。
+
+然后重新链接并同步文档：
 
 ```bash
 dot restow fish
+just docs
 ```
 
 ---
@@ -246,14 +258,14 @@ git push
 ### 1. 备份原文件
 
 ```bash
-cp fish/.config/fish/conf.d/99-abbr.fish fish/.config/fish/conf.d/99-abbr.fish.bak.$(date +%Y%m%d_%H%M%S)
+cp fish/.config/fish/data/abbr.tsv fish/.config/fish/data/abbr.tsv.bak.$(date +%Y%m%d_%H%M%S)
 ```
 
 ### 2. 验证语法
 
 **Fish:**
 ```bash
-fish -n fish/.config/fish/conf.d/99-abbr.fish
+fish -n fish/.config/fish/conf.d/99-abbr.fish   # 加载器语法
 ```
 
 **JSON:**
@@ -267,19 +279,22 @@ fastfetch --config fastfetch/.config/fastfetch/config.jsonc
 fish   # 启动新 Fish 会话验证
 ```
 
-### 4. 更新文档
+### 4. 同步文档（不再手改文档表格）
 
-- 修改 `docs/` 中的相关文档
-- 更新 `cheat.fish` 中的命令列表
+```bash
+just docs          # 从数据文件重新生成 README / docs / cheat
+just check         # 校验生成结果是否最新
+```
 
 ---
 
 ## 🆕 添加新 Fish 函数
 
-创建文件 `fish/.config/fish/functions/函数名.fish`：
+创建文件 `fish/.config/fish/functions/函数名.fish`，并在定义行写上 `-d "说明"`
+（`cheat` 与文档会从 `-d` 描述自动收录，无需再手改任何列表）：
 
 ```fish
-function 函数名
+function 函数名 -d "一句话说明"
     # 参数检查
     if test -z "$argv[1]"
         echo "用法: 函数名 <参数>"
@@ -291,10 +306,11 @@ function 函数名
 end
 ```
 
-然后重新链接：
+然后重新链接并同步文档：
 
 ```bash
 dot restow fish
+just docs
 ```
 
 ---
@@ -305,9 +321,8 @@ dot restow fish
 
 - [ ] Fish 配置文件语法正确 (`fish -n` 无错误)
 - [ ] Fastfetch 配置 JSON 语法正确
-- [ ] 新添加的缩写已记录到 `cheat.fish`
-- [ ] 新添加的函数已记录到 `cheat.fish`
-- [ ] 用户文档已更新
+- [ ] 数据文件改动后已运行 `just docs`（cheat 与文档自动同步）
+- [ ] `just check` 通过（生成文档与数据源一致）
 - [ ] Stow 链接正常 (`dot status` 无错误)
 - [ ] 功能已在实际环境中测试
 - [ ] 移动端显示效果已验证

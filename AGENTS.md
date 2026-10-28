@@ -1,6 +1,6 @@
 # Termux 优化配置项目 - AI Agent 工作指引
 
-> **版本**: 3.12  
+> **版本**: 4.0  
 > **最后更新**: 2026-10-19  
 > **项目目标**: 为 Android Termux 环境提供优化的 Fish Shell 配置，提升移动端终端使用体验
 
@@ -42,77 +42,116 @@
 
 ## 仓库结构
 
+> 本节由 `tools/gen-docs` 从实际文件系统与 `data/packages.tsv` 生成，不要手改。
+
+<!-- gen:tree -->
 ```
-./                            # Git 仓库根目录，克隆位置不限
-├── bin/                      # dot 管理命令包
-│   └── .local/bin/dot        # → ~/.local/bin/dot (readlink 自动定位仓库)
-├── fish/                     # Fish 配置包
-│   └── .config/fish/
-│       ├── config.fish       # 主配置入口 (说明性注释)
-│       ├── conf.d/           # 按功能拆分的配置片段 (按文件名顺序加载)
-│       │   ├── 00-init.fish      # 工具集成 (zoxide / starship / fzf / atuin，已安装则启用)
-│       │   ├── 05-env.fish       # 环境变量与 PATH
-│       │   ├── 10-aliases.fish   # 现代 CLI 别名 (eza / bat / dust / fd / rg)
-│       │   ├── 15-tmux.fish      # 自动进入 tmux (main 分组共享 / tab 独立)
-│       │   ├── 20-startup.fish   # fish_greeting (fastfetch) 与提示符
-│       │   ├── 99-abbr.fish      # 移动友好缩写
-│       │   └── zz-bash-env.fish  # 继承 Bash 登录环境 (fenv，须排在 omf.fish 之后)
-│       ├── completions/      # 自定义补全
-│       └── functions/        # 自定义函数
-│           ├── cheat.fish        # 命令参考显示
-│           ├── dot.fish          # dot 命令 (cd 本地处理，其余转发给 ~/.local/bin/dot)
-│           ├── retry.fish        # 失败自动重试
-│           ├── run.fish          # 当前目录 justfile 派发
-│           ├── termux-reload.fish
-│           └── update.fish
-├── fastfetch/                # Fastfetch 配置包
-│   └── .config/fastfetch/
-│       ├── config.jsonc          # 标准显示配置
-│       └── config-compact.jsonc  # 紧凑显示配置
-├── starship/                 # Starship 提示符配置包
-│   └── .config/starship.toml
-├── atuin/                    # Atuin 命令历史配置包
-│   └── .config/atuin/config.toml
-├── git/                      # Git 全局配置包 (提交模板/别名/忽略)
-│   └── .config/git/
-├── helix/                    # Helix 编辑器配置包
-│   └── .config/helix/
-│       ├── config.toml          # 编辑器行为与主题选择
-│       ├── languages.toml       # formatter (fish/clang)
-│       └── themes/transparent.toml  # 透明背景主题
-├── tmux/                     # tmux 终端复用配置包 (前缀 C-b)
-│   └── .config/tmux/
-│       ├── tmux.conf             # 键位、状态栏、复制模式
-│       └── scripts/              # tab-name / new-tab / which-key / window-jump / 剪贴板脚本
-├── termux/                   # Termux 配置包
+~/dotfiles/  # 克隆到任意目录均可
+├── bin/          # dot 管理命令 (~/.local/bin/dot)
+│   └── .local/
+│       └── bin/
+│           └── dot
+├── fish/         # Fish Shell 配置
+│   └── .config/
+│       └── fish/
+│           ├── completions/
+│           │   ├── retry.fish
+│           │   └── run.fish
+│           ├── conf.d/
+│           │   ├── 00-init.fish
+│           │   ├── 05-env.fish
+│           │   ├── 10-aliases.fish
+│           │   ├── 15-tmux.fish
+│           │   ├── 20-startup.fish
+│           │   ├── 99-abbr.fish
+│           │   └── zz-bash-env.fish
+│           ├── data/
+│           │   ├── abbr.tsv
+│           │   └── alias.tsv
+│           ├── functions/
+│           │   ├── cheat.fish
+│           │   ├── dot.fish
+│           │   ├── retry.fish
+│           │   ├── run.fish
+│           │   ├── termux-reload.fish
+│           │   └── update.fish
+│           └── config.fish
+├── fastfetch/    # 系统信息显示配置
+│   └── .config/
+│       └── fastfetch/
+│           ├── config-compact.jsonc
+│           └── config.jsonc
+├── starship/     # Starship 提示符配置
+│   └── .config/
+│       └── starship.toml
+├── atuin/        # Atuin 命令历史搜索配置
+│   └── .config/
+│       └── atuin/
+│           └── config.toml
+├── git/          # Git 全局配置 (提交模板/别名/忽略，不含身份)
+│   └── .config/
+│       └── git/
+│           ├── config
+│           ├── gitmessage
+│           └── ignore
+├── helix/        # Helix 编辑器配置
+│   └── .config/
+│       └── helix/
+│           ├── themes/
+│           │   └── transparent.toml
+│           ├── config.toml
+│           └── languages.toml
+├── tmux/         # tmux 终端复用配置 (前缀 C-b)
+│   └── .config/
+│       └── tmux/
+│           ├── scripts/
+│           │   ├── clipboard-copy
+│           │   ├── mem-status
+│           │   ├── new-tab
+│           │   ├── paste-clipboard
+│           │   ├── tab-name
+│           │   ├── termux-api-ready
+│           │   ├── which-key
+│           │   └── window-jump
+│           └── tmux.conf
+├── termux/       # Termux 应用设置 (含登录 MOTD)
 │   └── .termux/
-│       ├── termux.properties     # 应用设置
-│       ├── colors.properties     # 颜色主题
-│       ├── font.ttf              # 自定义字体
-│       └── motd.sh               # 登录提示 (Tailscale/tmux/Agents/内存/仓库)
-├── setup.sh                  # 安装脚本 (install/export/full 子命令)
-├── justfile                  # just 一键指令 (setup/install-emacs/restow 等)
-├── packages.txt              # 软件包列表
-├── docs/                     # 用户文档 (不参与 Stow)
-├── README.md                 # 使用说明
-└── AGENTS.md                 # 本文件
+│       ├── colors.properties
+│       ├── font.ttf
+│       ├── motd.sh
+│       └── termux.properties
+├── data/         # Stow 包清单 (单一真相源)
+│   ├── features.tsv
+│   ├── optional.tsv
+│   └── packages.tsv
+├── tools/        # gen-docs 文档生成器
+│   └── gen-docs
+├── docs/         # 详细文档
+├── setup.sh     # 一键安装脚本
+├── justfile     # just 一键指令 (setup / docs / restow ...)
+├── packages.txt # 软件包列表 (setup.sh install/export)
+├── .non-packages # 不参与 Stow 的顶层目录
+└── README.md    # 本文件
 ```
+<!-- /gen -->
 
 ### 配置包与链接目标
 
-| 包名 | 仓库路径 | 链接目标 | 修改风险 |
-|------|----------|----------|----------|
-| `bin` | `bin/.local/bin/dot` | `~/.local/bin/dot` | 中 - dot 命令失效 |
-| `fish` | `fish/.config/fish/` | `~/.config/fish/` | 高 - 影响 Shell 启动 |
-| `fastfetch` | `fastfetch/.config/fastfetch/` | `~/.config/fastfetch/` | 低 - 仅影响显示 |
-| `starship` | `starship/.config/starship.toml` | `~/.config/starship.toml` | 低 - 仅影响提示符 |
-| `atuin` | `atuin/.config/atuin/` | `~/.config/atuin/` | 低 - 仅影响历史搜索 |
-| `git` | `git/.config/git/` | `~/.config/git/` | 中 - 影响 Git 行为 (不含身份) |
-| `helix` | `helix/.config/helix/` | `~/.config/helix/` | 低 - 仅影响编辑器 |
-| `tmux` | `tmux/.config/tmux/` | `~/.config/tmux/` | 低 - 仅影响 tmux 会话 |
-| `termux` | `termux/.termux/` | `~/.termux/` | 中 - 影响应用行为 |
+> 下表由 `tools/gen-docs` 从 `data/packages.tsv` 生成，不要手改；新增包只改该文件。
 
-`docs/`、`*.md`、`packages.txt` 已列入 `.stow-local-ignore`，不会被链接。
+<!-- gen:packages-risk -->
+| 包名 | 说明 | 链接目标 | 修改风险 |
+|------|------|------|------|
+| `bin` | dot 管理命令 (~/.local/bin/dot) | `~/.local/bin/dot` | 中 - dot 命令失效 |
+| `fish` | Fish Shell 配置 | `~/.config/fish/` | 高 - 影响 Shell 启动 |
+| `fastfetch` | 系统信息显示配置 | `~/.config/fastfetch/` | 低 - 仅影响显示 |
+| `starship` | Starship 提示符配置 | `~/.config/starship.toml` | 低 - 仅影响提示符 |
+| `atuin` | Atuin 命令历史搜索配置 | `~/.config/atuin/` | 低 - 仅影响历史搜索 |
+| `git` | Git 全局配置 (提交模板/别名/忽略，不含身份) | `~/.config/git/` | 中 - 影响 Git 行为 (不含身份) |
+| `helix` | Helix 编辑器配置 | `~/.config/helix/` | 低 - 仅影响编辑器 |
+| `tmux` | tmux 终端复用配置 (前缀 C-b) | `~/.config/tmux/` | 低 - 仅影响 tmux 会话 |
+| `termux` | Termux 应用设置 (含登录 MOTD) | `~/.termux/` | 中 - 影响应用行为 |
+<!-- /gen -->
 
 ---
 
@@ -147,11 +186,29 @@ type -q starship; and starship init fish | source
 - 配置文件包含指引性注释
 - 提供 `cheat` 命令快速参考
 
-### 5. 单一实现 (Single Source of Truth)
+### 5. 单一真相源 (Single Source of Truth)
 
-- `dot` 命令逻辑只在 `bin/.local/bin/dot` 一处实现；fish 侧 `dot.fish` 仅做必要的 `cd` 转发
-- `justfile` 仅做入口封装：安装/导出转发 `setup.sh`，链接状态转发 `dot`，Emacs 安装转发 UniEmacs 自带的 `just emacs`，不重复实现逻辑
-- 文档与代码不一致时，以代码为准并修正文档
+**核心约定：任何信息只允许有一个家。改东西时先查下表，只动一个文件，再跑 `just docs`。**
+
+| 想改什么 | 唯一真相源 | 消费方（自动同步） |
+|----------|------------|--------------------|
+| Stow 配置包 | `data/packages.tsv` | `setup.sh`、`bin/.local/bin/dot`、`docs/` 包表、仓库结构树 |
+| 非 Stow 顶层目录 | `.non-packages` | `setup.sh`、`bin/.local/bin/dot` |
+| Fish 缩写 | `fish/.config/fish/data/abbr.tsv` | `conf.d/99-abbr.fish`（运行时）、`cheat`、README、`docs/keybindings.md` |
+| Fish 别名 | `fish/.config/fish/data/alias.tsv` | `conf.d/10-aliases.fish`（运行时）、`cheat`、README、`docs/keybindings.md` |
+| Fish 函数说明 | `functions/*.fish` 的 `function -d "..."` | `cheat`、`docs/keybindings.md` |
+| just 一键指令 | `justfile` 的配方注释 | `cheat`、README、`docs/keybindings.md`（`just docs` 时解析） |
+| dot 子命令 | `bin/.local/bin/dot` 的 `usage()` | `cheat`、README、`docs/dotfiles-management.md` |
+| tmux 键位 | `tmux.conf` 的 `#@ 分组 \| 按键 \| 说明` 注解 | 前缀 `?` 的 `which-key`（运行时）、`docs/tmux.md` |
+| tmux 脚本用途 | 各脚本头部的 `# desc:` | `docs/tmux.md` 脚本表 |
+| 已安装软件 | `packages.txt` | `setup.sh install/export` |
+
+- 生成器：`tools/gen-docs`；`just docs` 重新生成，`just check` 校验是否最新。
+- 生成内容位于 `<!-- gen:NAME --> … <!-- /gen -->` 标记之间，**禁止手改**。
+- 其余没有标记的正文（说明、教程、故障排除）仍需人工维护，改动数据文件时顺手检查。
+- `dot` 命令逻辑只在 `bin/.local/bin/dot` 一处实现；fish 侧 `dot.fish` 仅做必要的 `cd` 转发。
+- `justfile` 只做入口封装：安装/导出转发 `setup.sh`，链接/文档转发 `dot` 与 `tools/gen-docs`，Emacs 安装转发 UniEmacs 自带的 `just emacs`。
+- 文档与代码不一致时，以代码（数据文件）为准并修正文档。
 
 ---
 
@@ -172,40 +229,40 @@ type -q starship; and starship init fish | source
 
 ### 修改配置文件后
 
-1. 重新链接: `dot restow <包>`
-2. 启动新 Fish 会话验证（`fish`）
-3. 验证功能：执行相关函数/命令
-4. 更新文档（见下）
+1. 若改了数据文件：`just docs`（同步生成的表格与 `cheat`）
+2. 重新链接: `dot restow <包>`（或 `dot restow` 全部）
+3. 启动新 Fish 会话验证（`fish`）
+4. 验证功能：执行相关函数/命令
+5. `just check` 确认生成内容与数据源一致
 
-### 文档同步要求
+### 文档更新规则
 
-修改配置后，同步检查更新：
+- **有生成标记的表格**：只改数据文件，然后 `just docs`，不要手改表格。
+- **纯正文/教程**：不受生成器覆盖，数据变化时人工检查下列文件：
+  - 安装流程：`README.md`、`docs/installation.md`、`setup.sh` 帮助文本
+  - Termux MOTD：`README.md`、`docs/customization.md`、`docs/troubleshooting.md`
+  - tmux 自动进入 / 标签页命名：`README.md`、`docs/keybindings.md`、`docs/customization.md`、`docs/troubleshooting.md`、`motd.sh`
+  - 快捷键栏：`README.md`、`docs/keybindings.md`
 
-| 改动 | 需要更新的文档 |
-|------|----------------|
-| 新缩写 | `cheat.fish`、`docs/keybindings.md`、`README.md` 命令表 |
-| 新函数 | `cheat.fish`、`docs/keybindings.md`、`README.md` |
-| 新配置包 | `README.md`、`docs/index.md`（`setup.sh` 已动态发现配置包，无需维护包列表；新增不参与 Stow 的顶层目录需同时加入 `setup.sh` 与 `bin/.local/bin/dot` 的 `NON_PACKAGES`） |
-| 快捷键栏 | `docs/keybindings.md`、`README.md` |
-| 安装流程 | `README.md`、`docs/installation.md`、`setup.sh` 帮助文本 |
-| Termux MOTD | `README.md`、`docs/customization.md`、`docs/troubleshooting.md` |
-| tmux 自动进入 | `README.md`、`docs/keybindings.md`、`docs/customization.md`、`docs/troubleshooting.md`、`cheat.fish` |
-| tmux 标签页命名/分组 | `docs/tmux.md`、`docs/keybindings.md`、`docs/customization.md`、`docs/troubleshooting.md`、`README.md`、`cheat.fish`、`motd.sh` |
-| tmux 键位/脚本 | `docs/tmux.md`、`docs/keybindings.md`、`cheat.fish` |
-| just 指令 | `README.md` 指令表、`docs/keybindings.md`、`cheat.fish` |
+### 添加新缩写 (abbr) / 别名 (alias)
 
-### 添加新缩写 (abbr)
+唯一真相源:
+- 缩写 `fish/.config/fish/data/abbr.tsv`
+- 别名 `fish/.config/fish/data/alias.tsv`（别名在管道/命令替换也生效，替换系统命令时用）
 
-位置: `fish/.config/fish/conf.d/99-abbr.fish`
+格式（制表符分隔，行首 `#` 为注释）:
 
-```fish
-# 格式
-abbr -a 缩写 '完整命令'
-
-# 示例
-abbr -a g 'git'
-abbr -a push 'git push'
 ```
+# 缩写: 分类 / 缩写 / 展开 / 说明 / 条件
+🔀 Git	graph	git log --oneline --graph	图形化历史	-
+# 别名: 别名 / 展开 / 说明 / 条件
+ls	eza --group-directories-first	增强版 ls	eza
+```
+
+条件列: `-` 始终启用；`命令名` 已安装才启用；`!命令名` 未安装才启用。
+`conf.d/99-abbr.fish`、`conf.d/10-aliases.fish` 只是加载器，不要往里写定义。
+
+改完执行：`dot restow fish`（运行时生效）→ `just docs`（cheat 与文档同步）。
 
 **命名规范**:
 - 导航: `..`, `...`, `~`
@@ -216,11 +273,12 @@ abbr -a push 'git push'
 
 ### 添加新函数
 
-位置: `fish/.config/fish/functions/`
+位置: `fish/.config/fish/functions/`。定义行必须写 `-d "说明"`，`cheat` 与文档
+会从该描述自动收录，不必再手改任何列表。
 
 ```fish
 # 文件名: function_name.fish
-function function_name
+function function_name -d "一句话说明"
     # 参数检查
     if test -z "$argv[1]"
         echo "用法: function_name <参数>"
@@ -231,6 +289,8 @@ function function_name
     echo "正在处理 $argv[1]"
 end
 ```
+
+改完执行：`dot restow fish` → `just docs`。
 
 ### 修改 Fastfetch 配置
 
@@ -273,17 +333,18 @@ end
 ### 使用 dot 命令管理 dotfiles
 
 ```bash
-dot cd            # 进入仓库目录
-dot path          # 输出仓库路径
-dot stow <包>     # 链接配置包
-dot unstow <包>   # 取消链接
-dot restow <包>   # 重新链接
-dot list          # 列出所有包及状态
-dot status        # 检查链接状态 (已链接/未链接/冲突)
-dot add <包>      # 添加新包 (交互式)
+dot path            # 输出仓库路径
+dot stow [包...]    # 链接 (缺省=全部包)
+dot unstow [包...]  # 取消链接 (缺省=全部包)
+dot restow [包...]  # 重新链接 (缺省=全部包)
+dot list            # 列出所有包及说明
+dot status          # 检查链接状态 (已链接/未链接/冲突)
+dot add <包>        # 交互式添加新包并登记到 data/packages.tsv
+dot docs            # 重新生成文档与 cheat (tools/gen-docs)
 ```
 
-添加新配置包后，如果仓库新增了不参与 Stow 的顶层目录，需把它加入 `bin/.local/bin/dot` 与 `setup.sh` 的 `NON_PACKAGES` 数组。
+新增不参与 Stow 的顶层目录：写入 `.non-packages`（`setup.sh` 与 `dot` 都读它）。
+新增配置包：`dot add <包>`，或 `mkdir` + 在 `data/packages.tsv` 加一行。
 
 ### setup.sh 子命令
 
@@ -299,7 +360,7 @@ bash setup.sh help      # 帮助
 `justfile` 是常用操作的一键入口，只做转发（见设计原则 5）。新增指令时：
 
 1. 配方注释第一行即 `just --list` 的说明文本，保持一句话、清晰易懂
-2. 同步更新 `README.md` 指令表、`docs/keybindings.md` 与 `cheat.fish`
+2. 运行 `just docs` —— README、`docs/keybindings.md` 与 `cheat` 的指令表会从 justfile 自动同步
 3. 用 `just --list` 与 `just --dry-run <指令>` 验证
 
 ---
@@ -318,9 +379,9 @@ bash setup.sh                 # 自动装好 just，之后可 just 一键操作
 
 ### 任务 2: 添加新的快捷命令
 
-1. 编辑 `fish/.config/fish/conf.d/99-abbr.fish` 添加缩写
-2. `dot restow fish`
-3. 按上方「文档同步要求」更新文档
+1. 在 `fish/.config/fish/data/abbr.tsv`（或 `alias.tsv`）加一行
+2. `dot restow fish`（运行时生效）
+3. `just docs`（cheat 与文档表格自动同步）
 4. 提交到 Git (可选)
 
 ### 任务 3: 修改 Fastfetch 显示内容
@@ -343,10 +404,10 @@ bash setup.sh                 # 自动装好 just，之后可 just 一键操作
 
 ### 任务 5: 添加新的 Fish 函数
 
-1. 创建 `fish/.config/fish/functions/<函数名>.fish`
+1. 创建 `fish/.config/fish/functions/<函数名>.fish`，定义行写 `-d "说明"`
 2. `dot restow fish`
 3. 启动新会话测试
-4. 更新 `cheat.fish` 和文档
+4. `just docs`（cheat 与文档自动收录该函数）
 
 ### 任务 6: 同步配置到新设备
 
@@ -465,6 +526,7 @@ fastfetch --debug         # 调试模式
 | 2026-10-18 | 3.10 | 新增自定义 Termux 登录提示 `motd.sh`：显示 Tailscale/tmux/Emacs·Pi/内存/dotfiles 状态；静态信息带 1 天缓存 |
 | 2026-10-19 | 3.11 | tmux 标签页改为「main 分组会话 + 可读唯一会话名」：新增 `scripts/tab-name`（形容词-动物命名、自动回收零客户端分组会话）与 `scripts/new-tab`（前缀 C 新建标签页）；状态栏/终端标题改用 `#S`、新增前缀 `N` 改名；`window-jump` 按 window_id 去重；MOTD 改列已附着的标签页名 |
 | 2026-10-19 | 3.12 | Git 缩写统一为子命令词形式（`push` / `pull` / `status` 等），移除 `gs` / `ga` / `gc` / `gp` / `gl` / `gd` / `cm` / `cmall`；git 别名 `st` / `lg` 改为 `graph` 并去掉 `st` |
+| 2026-10-19 | 4.0 | 统一真相源：缩写/别名改为 `fish/.config/fish/data/*.tsv` 数据驱动，包清单改为 `data/packages.tsv`，非包目录集中在 `.non-packages`；新增 `tools/gen-docs` + `just docs`/`just check`，README/docs/AGENTS 的表格与 `cheat` 全部由数据生成；tmux 键位以 `tmux.conf` 的 `#@` 注解为源，`which-key` 运行时读取 |
 
 ---
 
@@ -472,10 +534,11 @@ fastfetch --debug         # 调试模式
 
 完成任务后验证：
 
+- [ ] 数据文件改动后已运行 `just docs`
+- [ ] `just check` 通过（生成文档与数据源一致）
 - [ ] Fish 配置语法正确 (`fish -n` 无错误)
 - [ ] Fastfetch 配置 JSON 语法正确
-- [ ] 新缩写/函数已记录到 `cheat.fish` 和文档
-- [ ] justfile 改动已通过 `just --list` 验证，指令表已同步文档
+- [ ] justfile 改动已通过 `just --list` 验证
 - [ ] Fish 环境继承可用 (`fish -c 'type -q fenv'` 通过)
 - [ ] `dot status` 无冲突
 - [ ] 功能已在实际环境中测试

@@ -3,6 +3,8 @@
 # SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
 #
 # SPDX-License-Identifier: MIT
+#
+# desc: 粘贴钩子：Android 剪贴板 → tmux 缓冲 → 粘贴
 
 # paste-clipboard — 优先取 Android 剪贴板写入 tmux 缓冲，然后粘贴。
 # Termux:API 应用不可用时直接粘贴 tmux 自身缓冲，绝不阻塞。

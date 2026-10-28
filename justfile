@@ -62,16 +62,16 @@ install-emacs:
 
 # 重新链接所有配置包（修改配置后执行）
 restow:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    for pkg in */; do
-        pkg="${pkg%/}"
-        if [ "$pkg" != "docs" ]; then
-            stow -R -t ~ "$pkg"
-        fi
-    done
-    echo "已重新链接全部配置包"
+    bash bin/.local/bin/dot restow
 
 # 检查所有配置包的链接状态
 status:
-    dot status
+    bash bin/.local/bin/dot status
+
+# 从数据文件重新生成 README/docs 表格与 cheat（改数据文件后执行）
+docs:
+    python3 tools/gen-docs
+
+# 校验生成文档与数据源是否同步（提交前/CI）
+check:
+    python3 tools/gen-docs --check

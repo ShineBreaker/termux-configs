@@ -9,3 +9,7 @@ fish/.config/fish/fish_variables
 
 # Oh My Fish 安装器写入的启动文件（同样经折叠链接落到仓库内，不入库）
 fish/.config/fish/conf.d/omf.fish
+
+# Python 缓存 (tools/gen-docs)
+__pycache__/
+*.pyc

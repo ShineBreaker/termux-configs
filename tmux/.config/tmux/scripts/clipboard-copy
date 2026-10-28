@@ -3,6 +3,8 @@
 # SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
 #
 # SPDX-License-Identifier: MIT
+#
+# desc: 复制钩子：写 Android 剪贴板（可选），永不阻塞
 
 # clipboard-copy — copy-mode 复制钩子：选中文本经 stdin 传入。
 # tmux 已负责写入自身 buffer，并在 set-clipboard on 时尝试 OSC52；

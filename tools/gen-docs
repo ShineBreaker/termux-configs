@@ -1,0 +1,490 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""gen-docs — 从仓库内的数据文件渲染 cheat 命令与文档表格。
+
+单一真相源 (改这些文件即可，不要手改生成结果):
+  fish/.config/fish/data/abbr.tsv    缩写
+  fish/.config/fish/data/alias.tsv   别名
+  data/packages.tsv                  Stow 配置包
+  .non-packages                      不参与 Stow 的顶层目录
+  justfile                           just 一键指令 (配方注释即说明)
+  bin/.local/bin/dot                 dot 子命令 (usage() 即说明)
+  tmux/.config/tmux/tmux.conf        tmux 键位 (#@ 注解)
+  tmux/.config/tmux/scripts/*        tmux 脚本 (# desc: 注释)
+  fish/.config/fish/functions/*.fish Fish 函数 (function -d 描述)
+
+生成目标:
+  fish/.config/fish/functions/cheat.fish   整份重写
+  README.md / docs/*.md                    只重写 <!-- gen:NAME --> 区块
+
+用法: tools/gen-docs [--check]
+  --check  只检查生成结果是否最新 (CI/提交前用)，不写文件
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+ABBR_TSV = ROOT / "fish/.config/fish/data/abbr.tsv"
+ALIAS_TSV = ROOT / "fish/.config/fish/data/alias.tsv"
+PACKAGES_TSV = ROOT / "data/packages.tsv"
+FEATURES_TSV = ROOT / "data/features.tsv"
+OPTIONAL_TSV = ROOT / "data/optional.tsv"
+NON_PACKAGES = ROOT / ".non-packages"
+JUSTFILE = ROOT / "justfile"
+DOT_SCRIPT = ROOT / "bin/.local/bin/dot"
+TMUX_CONF = ROOT / "tmux/.config/tmux/tmux.conf"
+TMUX_SCRIPTS = ROOT / "tmux/.config/tmux/scripts"
+FISH_FUNCS = ROOT / "fish/.config/fish/functions"
+CHEAT = FISH_FUNCS / "cheat.fish"
+
+DOCS = [
+    ROOT / "README.md",
+    ROOT / "AGENTS.md",
+    ROOT / "docs/index.md",
+    ROOT / "docs/installation.md",
+    ROOT / "docs/keybindings.md",
+    ROOT / "docs/tmux.md",
+    ROOT / "docs/dotfiles-management.md",
+    ROOT / "docs/customization.md",
+    ROOT / "docs/troubleshooting.md",
+]
+
+MARKER_RE = re.compile(r"^<!-- gen:([\w-]+) -->\n.*?^<!-- /gen -->$", re.S | re.M)
+
+
+# ---------- 数据读取 ----------
+
+
+def read_tsv(path: Path, cols: int) -> list[list[str]]:
+    """读取制表符分隔的数据文件，跳过空行与 # 注释。"""
+    rows = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        fields = [f.strip() for f in line.split("\t")]
+        if len(fields) < cols:
+            raise SystemExit(f"{path}: 列数不足 ({len(fields)} < {cols}): {line}")
+        rows.append(fields)
+    return rows
+
+
+def abbrs() -> list[list[str]]:
+    return read_tsv(ABBR_TSV, 5)
+
+
+def aliases() -> list[list[str]]:
+    return read_tsv(ALIAS_TSV, 4)
+
+
+def packages() -> list[list[str]]:
+    return read_tsv(PACKAGES_TSV, 5)
+
+
+def features() -> list[list[str]]:
+    return read_tsv(FEATURES_TSV, 2)
+
+
+def optional_features() -> list[list[str]]:
+    return read_tsv(OPTIONAL_TSV, 2)
+
+
+def non_packages() -> list[str]:
+    return [line.strip() for line in NON_PACKAGES.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.lstrip().startswith("#")]
+
+
+def just_recipes() -> list[tuple[str, str]]:
+    """从 justfile 提取 (配方名, 说明)；说明取配方上方第一行注释。"""
+    lines = JUSTFILE.read_text(encoding="utf-8").splitlines()
+    out, pending = [], None
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            # 注释块里取最靠近配方的那一行
+            pending = stripped.lstrip("#").strip()
+            continue
+        if not stripped:
+            pending = None
+            continue
+        m = re.match(r"^@?([A-Za-z0-9_-]+)(\s+[^:]*)?:", line)
+        if m and not line.startswith(" "):
+            out.append((m.group(1), pending or ""))
+        pending = None
+    return out
+
+
+def dot_commands() -> list[tuple[str, str]]:
+    """从 dot 脚本的 usage() 提取 (子命令, 说明)。"""
+    text = DOT_SCRIPT.read_text(encoding="utf-8")
+    body = text.split("usage() {", 1)[1] if "usage() {" in text else ""
+    out = []
+    for line in body.splitlines():
+        m = re.match(r'\s*echo\s+"\s{2}([^"].*?)\s{2,}(.*)"\s*$', line)
+        if m:
+            out.append((m.group(1).strip(), m.group(2).strip().replace("\\$", "$")))
+        if line.strip() == "}":
+            break
+    return out
+
+
+def tmux_keys() -> list[tuple[str, str, str]]:
+    """从 tmux.conf 的 `#@ 分组 | 按键 | 说明` 注解提取键位。
+
+    同一分组在文件里可能分散在多处 (如复制模式相关绑定)，这里按分组首次出现的
+    顺序合并，渲染出的表格/浮窗才不会出现重复的分组标题。
+    """
+    order: list[str] = []
+    buckets: dict[str, list[tuple[str, str, str]]] = {}
+    for line in TMUX_CONF.read_text(encoding="utf-8").splitlines():
+        m = re.match(r"^#@\s+(.+?)\s*\|\s*(.+?)\s*\|\s*(.+)$", line)
+        if not m:
+            continue
+        cat, key, desc = (g.strip() for g in m.groups())
+        if cat not in buckets:
+            buckets[cat] = []
+            order.append(cat)
+        buckets[cat].append((cat, key, desc))
+    return [entry for cat in order for entry in buckets[cat]]
+
+
+def tmux_scripts() -> list[tuple[str, str]]:
+    """从 tmux 脚本头部的 `# desc: ...` 提取 (脚本名, 用途)。"""
+    out = []
+    for path in sorted(TMUX_SCRIPTS.iterdir()):
+        if not path.is_file():
+            continue
+        desc = ""
+        for line in path.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"^#\s*desc:\s*(.+)$", line)
+            if m:
+                desc = m.group(1).strip()
+                break
+        out.append((path.name, desc))
+    return out
+
+
+def fish_functions() -> list[tuple[str, str]]:
+    """从 functions/*.fish 的 function 定义提取 (函数名, 描述)。"""
+    out = []
+    for path in sorted(FISH_FUNCS.glob("*.fish")):
+        if path.name == "cheat.fish":
+            continue
+        m = re.search(r'^function\s+([\w.-]+)(?:\s+-d\s+"([^"]*)"|\s+-d\s+\'([^\']*)\')?',
+                      path.read_text(encoding="utf-8"), re.M)
+        if m:
+            out.append((m.group(1), (m.group(2) or m.group(3) or "").strip()))
+    return out
+
+
+# ---------- Markdown 渲染 ----------
+
+
+def md_table(headers: list[str], rows: list[list[str]]) -> str:
+    out = ["| " + " | ".join(headers) + " |",
+           "|" + "|".join("------" for _ in headers) + "|"]
+    for row in rows:
+        out.append("| " + " | ".join(c.replace("|", "\\|") for c in row) + " |")
+    return "\n".join(out)
+
+
+def group_rows(rows: list[list[str]]) -> list[tuple[str, list[list[str]]]]:
+    groups: list[tuple[str, list[list[str]]]] = []
+    for row in rows:
+        cat = row[0]
+        if groups and groups[-1][0] == cat:
+            groups[-1][1].append(row)
+        else:
+            groups.append((cat, [row]))
+    return groups
+
+
+def render_abbr_md() -> str:
+    parts = []
+    for cat, rows in group_rows(abbrs()):
+        parts.append(f"**{cat}**")
+        parts.append("")
+        parts.append(md_table(["命令", "展开", "说明"], [[f"`{r[1]}`", f"`{r[2]}`", r[3]] for r in rows]))
+        parts.append("")
+    return "\n".join(parts).rstrip()
+
+
+def render_abbr_short_md() -> str:
+    rows = [[f"`{r[1]}`", r[3]] for r in abbrs()]
+    return md_table(["命令", "说明"], rows)
+
+
+def render_alias_md() -> str:
+    return md_table(["别名", "对应工具", "说明"],
+                    [[f"`{r[0]}`", f"`{r[1]}`", r[2]] for r in aliases()])
+
+
+def render_features_md() -> str:
+    return md_table(["特性", "说明"], [[r[0], r[1]] for r in features()])
+
+
+def render_optional_md() -> str:
+    return "\n".join(f"- **{r[0]}**: {r[1]}" for r in optional_features())
+
+
+def render_packages_md() -> str:
+    return md_table(["包名", "说明", "链接目标"],
+                    [[f"`{r[0]}`", r[1], f"`{r[2]}`"] for r in packages()])
+
+
+def render_packages_risk_md() -> str:
+    return md_table(["包名", "说明", "链接目标", "修改风险"],
+                    [[f"`{r[0]}`", r[1], f"`{r[2]}`", r[4]] for r in packages()])
+
+
+def render_just_md() -> str:
+    rows = [[f"`just {name}`", desc] for name, desc in just_recipes() if name != "default"]
+    return md_table(["指令", "说明"], rows)
+
+
+def render_dot_md() -> str:
+    return md_table(["命令", "说明"], [[f"`dot {c}`" if c != "cd" else "`dot cd`", d]
+                                       for c, d in dot_commands()])
+
+
+def render_tmux_keys_md() -> str:
+    keys = tmux_keys()
+    bare = [k for k in keys if k[0] == "无前缀"]
+    prefix = [k for k in keys if k[0] not in ("无前缀", "复制模式")]
+    parts = ["前缀键为 `Ctrl-b`（Termux 上为音量+ 与 `b` 同按）。", ""]
+    for cat, rows in group_rows(prefix):
+        parts.append(f"**{cat}**")
+        parts.append("")
+        parts.append(md_table(["按键", "操作"], [[f"`{k[1]}`", k[2]] for k in rows]))
+        parts.append("")
+    parts.append("无需前缀：")
+    parts.append("")
+    parts.append(md_table(["按键", "操作"], [[f"`{k[1]}`", k[2]] for k in bare]))
+    return "\n".join(parts).rstrip()
+
+
+def render_tmux_copy_md() -> str:
+    rows = [k for k in tmux_keys() if k[0] == "复制模式"]
+    return md_table(["按键", "操作"], [[f"`{k[1]}`", k[2]] for k in rows])
+
+
+def render_tmux_scripts_md() -> str:
+    return md_table(["脚本", "用途"], [[f"`{n}`", d] for n, d in tmux_scripts()])
+
+
+def render_tree() -> str:
+    """从实际文件系统生成仓库结构树，包说明取自 data/packages.tsv。"""
+    skip_names = {".git", ".mimosa", ".agents", "__pycache__", "fish_variables", "omf.fish", "shell"}
+
+    def tree_lines(root: Path, prefix: str, depth: int, max_depth: int) -> list[str]:
+        if depth > max_depth:
+            return []
+        entries = sorted(
+            (p for p in root.iterdir() if p.name not in skip_names),
+            key=lambda p: (p.is_file(), p.name),
+        )
+        out: list[str] = []
+        for i, path in enumerate(entries):
+            last = i == len(entries) - 1
+            connector = "└── " if last else "├── "
+            name = path.name + ("/" if path.is_dir() else "")
+            out.append(f"{prefix}{connector}{name}")
+            if path.is_dir():
+                out += tree_lines(path, prefix + ("    " if last else "│   "), depth + 1, max_depth)
+        return out
+
+    lines = ["~/dotfiles/  # 克隆到任意目录均可"]
+    pkg_descs = {r[0]: r[1] for r in packages()}
+
+    def top(name: str, note: str, inner: Path | None = None, depth: int = 1) -> None:
+        pad = " " * (width - len(name) - 1)
+        lines.append(f"├── {name}/{pad} # {note}")
+        if inner is not None:
+            lines.extend(tree_lines(inner, "│   ", 1, depth))
+
+    # 顶栏与包名列对齐到同一宽度
+    names = list(pkg_descs) + ["data", "tools", "docs"]
+    width = max(len(n) for n in names) + len("├── ")
+
+    # 包 (顺序与 packages.tsv 一致)
+    for name, desc in pkg_descs.items():
+        top(name, desc, ROOT / name, 4)
+
+    # 非包目录与顶层文件
+    top("data", "Stow 包清单 (单一真相源)", ROOT / "data", 2)
+    top("tools", "gen-docs 文档生成器", ROOT / "tools", 1)
+    top("docs", "详细文档")
+    top_files = [
+        ("setup.sh", "一键安装脚本"),
+        ("justfile", "just 一键指令 (setup / docs / restow ...)"),
+        ("packages.txt", "软件包列表 (setup.sh install/export)"),
+        (".non-packages", "不参与 Stow 的顶层目录"),
+        ("README.md", "本文件"),
+    ]
+    for fname, note in top_files:
+        pad = " " * (width - len(fname) - 1)
+        lines.append(f"├── {fname}{pad} # {note}")
+    lines[-1] = "└──" + lines[-1][3:]
+    return "```\n" + "\n".join(lines) + "\n```"
+
+
+def render_functions_md() -> str:
+    return md_table(["函数", "说明"], [[f"`{n}`", d] for n, d in fish_functions()])
+
+
+RENDERERS = {
+    "abbr": render_abbr_md,
+    "abbr-short": render_abbr_short_md,
+    "alias": render_alias_md,
+    "features": render_features_md,
+    "optional": render_optional_md,
+    "packages": render_packages_md,
+    "packages-risk": render_packages_risk_md,
+    "just": render_just_md,
+    "dot": render_dot_md,
+    "tmux-keys": render_tmux_keys_md,
+    "tmux-copy": render_tmux_copy_md,
+    "tmux-scripts": render_tmux_scripts_md,
+    "functions": render_functions_md,
+    "tree": render_tree,
+}
+
+
+# ---------- cheat.fish 渲染 ----------
+
+
+def fish_escape(text: str) -> str:
+    return text.replace("\\", "\\\\").replace('"', '\\"').replace("$", "\\$")
+
+
+def render_cheat() -> str:
+    out = [
+        "# cheat — 快捷命令参考 (由 tools/gen-docs 生成，勿手改)",
+        "#",
+        "# 数据来源: fish/.config/fish/data/abbr.tsv、alias.tsv、",
+        "#           data/packages.tsv、justfile、bin/.local/bin/dot",
+        "# 修改后重新生成: just docs (或 tools/gen-docs)",
+        "function cheat",
+        '    echo (set_color cyan)"╔════════════════════════════════════════╗"',
+        '    echo (set_color cyan)"║     📱 Termux Fish 快捷命令参考        ║"',
+        '    echo (set_color cyan)"╚════════════════════════════════════════╝"',
+        "    echo",
+    ]
+
+    # 缩写，按分类
+    for cat, rows in group_rows(abbrs()):
+        out.append(f'    echo (set_color yellow)"{fish_escape(cat)}:"')
+        for r in rows:
+            name, desc = r[1], r[3]
+            pad = " " * max(2, 9 - len(name))
+            out.append(f'    echo (set_color normal)"  {fish_escape(name)}{pad}{fish_escape(desc)}"')
+        out.append("    echo")
+
+    # 别名
+    out.append('    echo (set_color yellow)"🛠️  现代 CLI 别名 (装对应包后自动启用):"')
+    for r in aliases():
+        name, exp, desc = r[0], r[1], r[2]
+        pad = " " * max(2, 9 - len(name))
+        out.append(f'    echo (set_color normal)"  {fish_escape(name)}{pad}{fish_escape(desc)}"')
+    out.append("    echo")
+
+    # tmux 提示
+    out += [
+        '    echo (set_color yellow)"🧩 tmux 会话复用:"',
+        '    echo (set_color normal)"  新标签页自动进 tmux，会话名如 calm-otter (状态栏左上角)"',
+        '    echo "  前缀 Ctrl-b (音量+ + b): ? 速查  s 会话列表  f 跳窗口"',
+        '    echo "  分屏: \\\\ 左右 / - 上下   复制: [ 进入, v 选, y 复制   粘贴: p"',
+        '    echo "  跳过: TMUX_AUTO=0 fish  完全独立: TMUX_AUTO=tab fish"',
+        "    echo",
+    ]
+
+    # 函数
+    funcs = fish_functions()
+    if funcs:
+        out.append('    echo (set_color yellow)"⚡ 函数:"')
+        for name, desc in funcs:
+            pad = " " * max(2, 14 - len(name))
+            out.append(f'    echo (set_color normal)"  {fish_escape(name)}{pad}{fish_escape(desc)}"')
+        out.append("    echo")
+
+    # just 指令
+    out.append('    echo (set_color yellow)"⚡ just 一键指令:"')
+    for name, desc in just_recipes():
+        if name == "default":
+            continue
+        label = f"just {name}"
+        pad = " " * max(2, 22 - len(label))
+        out.append(f'    echo (set_color normal)"  {fish_escape(label)}{pad}{fish_escape(desc)}"')
+    out.append("    echo")
+
+    # dot 命令
+    out.append('    echo (set_color yellow)"📦 Dotfiles 管理:"')
+    for cmd, desc in dot_commands():
+        label = f"dot {cmd}"
+        pad = " " * max(2, 22 - len(label))
+        out.append(f'    echo (set_color normal)"  {fish_escape(label)}{pad}{fish_escape(desc)}"')
+    out.append("    echo")
+
+    out += [
+        '    echo (set_color cyan)"💡 提示: 按 TAB 键自动补全命令"',
+        "    echo",
+        "end",
+        "",
+    ]
+    return "\n".join(out)
+
+
+# ---------- 主流程 ----------
+
+
+def main() -> int:
+    check = "--check" in sys.argv
+    changed: list[Path] = []
+
+    cheat_new = render_cheat()
+    cheat_old = CHEAT.read_text(encoding="utf-8") if CHEAT.exists() else ""
+    if cheat_new != cheat_old:
+        changed.append(CHEAT)
+        if not check:
+            CHEAT.write_text(cheat_new, encoding="utf-8")
+
+    for doc in DOCS:
+        if not doc.exists():
+            continue
+        text = doc.read_text(encoding="utf-8")
+
+        def repl(m: re.Match) -> str:
+            name = m.group(1)
+            if name not in RENDERERS:
+                raise SystemExit(f"{doc.name}: 未知区块 gen:{name}")
+            return f"<!-- gen:{name} -->\n{RENDERERS[name]()}\n<!-- /gen -->"
+
+        new = MARKER_RE.sub(repl, text)
+        if new != text:
+            changed.append(doc)
+            if not check:
+                doc.write_text(new, encoding="utf-8")
+
+    if check:
+        if changed:
+            print("以下文件与数据源不同步，请运行 tools/gen-docs:")
+            for path in changed:
+                print(f"  {path.relative_to(ROOT)}")
+            return 1
+        print("文档与数据源同步 ✓")
+        return 0
+
+    if changed:
+        for path in changed:
+            print(f"更新 {path.relative_to(ROOT)}")
+    else:
+        print("无变化")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

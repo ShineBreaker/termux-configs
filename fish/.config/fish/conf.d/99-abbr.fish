@@ -1,69 +1,40 @@
-# 导航缩写
-abbr -a '..' -- 'cd ..'
-abbr -a '...' -- 'cd ../..'
-abbr -a '~' -- 'cd ~'
-abbr -a l -- 'ls -la'
-# ll 与桌面一致: 长列表含隐藏文件
-abbr -a ll -- 'ls -la'
-abbr -a la -- 'ls -la'
-# lt 按时间排序: eza 与 ls 的排序参数不同，按是否安装分别定义
-if type -q eza
-    abbr -a lt -- 'ls -l --sort=modified'
-else
-    abbr -a lt -- 'ls -lt'
+# Fish 缩写 —— 数据驱动，勿在此文件里直接写 abbr 定义。
+#
+# 真相源: data/abbr.tsv (分类 / 缩写 / 展开 / 说明 / 条件)
+# 本文件只负责把表格变成 abbr，因此新增缩写只需改表格一处：
+#   $EDITOR (status dirname)/../data/abbr.tsv
+#   dot restow fish        # 运行时生效
+#   just docs              # 文档表格同步
+#
+# 条件列实现渐进增强:
+#   命令名   已安装才定义 (如 zoxide 缺失时 cd 保持原义)
+#   !命令名  未安装才定义 (与上一行成对，如 lt 在 eza/ls 间切换)
+
+set -l abbr_data (status dirname)/../data/abbr.tsv
+
+if not test -r "$abbr_data"
+    echo "99-abbr.fish: 缺少缩写数据文件 $abbr_data" >&2
+    return 1
 end
 
-# 包管理缩写
-abbr -a pkgi -- 'oma install'
-abbr -a pkgu -- 'oma update && pkg upgrade'
-abbr -a pkgs -- 'oma search'
-abbr -a pkgl -- 'oma list'
+for line in (command cat -- "$abbr_data")
+    # 跳过注释与空行
+    string match -qr '^\s*(#|$)' -- "$line"; and continue
 
-# Git 缩写 (统一用子命令词本身，如 push / pull / status；不再用 gp / gl 之类两字母组合)
-# diff 会遮蔽系统 diff，需要系统 diff 时用 command diff
-abbr -a g -- 'git'
-abbr -a status -- 'git status -sb'
-abbr -a add -- 'git add'
-abbr -a commit -- 'git commit'
-# 桌面为 git commit --all -S；Termux 默认不依赖 GPG 签名，如需签名自行加 -S
-abbr -a commitall -- 'git commit --all'
-abbr -a push -- 'git push'
-abbr -a pull -- 'git pull'
-abbr -a fetch -- 'git fetch'
-abbr -a diff -- 'git diff'
-abbr -a log -- 'git log'
-abbr -a clone -- 'git clone'
+    set -l fields (string split \t -- "$line")
+    if test (count $fields) -lt 5
+        echo "99-abbr.fish: 跳过格式错误的行: $line" >&2
+        continue
+    end
 
-# 其他缩写
-abbr -a c -- 'clear'
-abbr -a q -- 'exit'
-abbr -a h -- 'history'
+    set -l condition (string trim -- "$fields[5]")
+    if test -n "$condition"; and test "$condition" != '-'
+        if string match -q '!*' -- "$condition"
+            type -q (string sub -s 2 -- "$condition"); and continue
+        else
+            type -q "$condition"; or continue
+        end
+    end
 
-# 仅在 zoxide 已安装时定义 cd 缩写，避免 zoxide 缺失时 cd 彻底失效 (渐进增强)
-if type -q zoxide
-    abbr -a cd -- 'z'
-end
-
-# Fastfetch 缩写
-abbr -a ff -- 'fastfetch'
-abbr -a ffmini -- 'fastfetch --config ~/.config/fastfetch/config-compact.jsonc'
-abbr -a fffull -- 'fastfetch --config ~/.config/fastfetch/config.jsonc'
-abbr -a ffcfg -- '$EDITOR ~/.config/fastfetch/config.jsonc'
-abbr -a ffcfgmini -- '$EDITOR ~/.config/fastfetch/config-compact.jsonc'
-
-# 编辑配置缩写
-abbr -a fishrc -- '$EDITOR ~/.config/fish/config.fish'
-abbr -a termuxrc -- '$EDITOR ~/.termux/termux.properties'
-abbr -a helixrc -- '$EDITOR ~/.config/helix/config.toml'
-abbr -a starshiprc -- '$EDITOR ~/.config/starship.toml'
-abbr -a atuinrc -- '$EDITOR ~/.config/atuin/config.toml'
-abbr -a gitrc -- '$EDITOR ~/.config/git/config'
-
-# 与桌面同名习惯: 在终端内打开 Emacs
-abbr -a ee -- 'emacsclient --tty --alternate-editor=""'
-
-# Tailscale 远程登录缩写 (仅 tailscale 已安装时定义)
-# 电脑的用户名/节点名如变化，改这一行即可
-if type -q tailscale
-    abbr -a enter -- 'tailscale ssh brokenshine@brokenshine-laptop'
+    abbr -a --description=(string trim -- "$fields[4]") -- "$fields[2]" "$fields[3]"
 end

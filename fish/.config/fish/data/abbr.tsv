@@ -1,0 +1,54 @@
+# Fish 缩写数据 —— 唯一真相源
+#
+# 列: 分类 / 缩写 / 展开 / 说明 / 条件
+#   条件: -         始终定义
+#         命令名    该命令已安装时才定义
+#         !命令名   该命令未安装时才定义 (与上一行成对，实现渐进增强)
+#
+# 消费方 (全部读本文件，勿在别处重复维护):
+#   fish/.config/fish/conf.d/99-abbr.fish   运行时加载 (dot restow fish 后生效)
+#   fish/.config/fish/functions/cheat.fish  cheat 命令
+#   tools/gen-docs                          文档表格 (just docs)
+#
+# 新增缩写: 加一行 → dot restow fish → just docs
+
+📂 导航	..	cd ..	返回上级目录	-
+📂 导航	...	cd ../..	返回上两级目录	-
+📂 导航	~	cd ~	返回主目录	-
+📂 导航	l	ls -la	详细列表	-
+📂 导航	ll	ls -la	详细列表 (含隐藏文件)	-
+📂 导航	la	ls -la	同 l	-
+📂 导航	lt	ls -l --sort=modified	按时间排序 (eza)	eza
+📂 导航	lt	ls -lt	按时间排序 (系统 ls)	!eza
+📂 导航	cd	z	zoxide 智能跳转	zoxide
+📦 包管理	pkgi	oma install	安装包	-
+📦 包管理	pkgu	oma update && pkg upgrade	更新所有包	-
+📦 包管理	pkgs	oma search	搜索包	-
+📦 包管理	pkgl	oma list	列出已安装包	-
+🔀 Git	g	git	git	-
+🔀 Git	status	git status -sb	简洁状态	-
+🔀 Git	add	git add	暂存	-
+🔀 Git	commit	git commit	提交 (打开模板)	-
+🔀 Git	commitall	git commit --all	提交全部改动	-
+🔀 Git	push	git push	推送	-
+🔀 Git	pull	git pull	拉取	-
+🔀 Git	fetch	git fetch	获取远端	-
+🔀 Git	diff	git diff	差异 (系统 diff 用 command diff)	-
+🔀 Git	log	git log	历史	-
+🔀 Git	clone	git clone	克隆	-
+📊 系统信息	ff	fastfetch	显示系统信息	-
+📊 系统信息	ffmini	fastfetch --config ~/.config/fastfetch/config-compact.jsonc	紧凑模式 (小屏幕)	-
+📊 系统信息	fffull	fastfetch --config ~/.config/fastfetch/config.jsonc	标准模式	-
+📊 系统信息	ffcfg	$EDITOR ~/.config/fastfetch/config.jsonc	编辑标准配置	-
+📊 系统信息	ffcfgmini	$EDITOR ~/.config/fastfetch/config-compact.jsonc	编辑紧凑配置	-
+📝 编辑配置	fishrc	$EDITOR ~/.config/fish/config.fish	编辑 Fish 配置入口	-
+📝 编辑配置	termuxrc	$EDITOR ~/.termux/termux.properties	编辑 Termux 配置	-
+📝 编辑配置	helixrc	$EDITOR ~/.config/helix/config.toml	编辑 Helix 配置	-
+📝 编辑配置	starshiprc	$EDITOR ~/.config/starship.toml	编辑 Starship 提示符	-
+📝 编辑配置	atuinrc	$EDITOR ~/.config/atuin/config.toml	编辑 Atuin 历史搜索	-
+📝 编辑配置	gitrc	$EDITOR ~/.config/git/config	编辑 Git 全局配置	-
+📝 编辑配置	ee	emacsclient --tty --alternate-editor=""	终端内打开 Emacs	-
+⚡ 其他	c	clear	清屏	-
+⚡ 其他	q	exit	退出	-
+⚡ 其他	h	history	历史记录	-
+🌐 远程	enter	tailscale ssh brokenshine@brokenshine-laptop	SSH 登录电脑	tailscale

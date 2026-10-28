@@ -1,0 +1,23 @@
+# Fish 别名数据 —— 唯一真相源
+#
+# 列: 别名 / 展开 / 说明 / 条件
+#   条件: -         始终定义
+#         命令名    该命令已安装时才定义
+#         !命令名   该命令未安装时才定义
+#
+# 与缩写的区别: 别名在管道、命令替换等场景同样生效 (缩写只展开在命令行首)，
+# 因此"替换掉系统命令"的现代 CLI 工具用别名，纯输入提速用缩写。
+#
+# 消费方 (全部读本文件，勿在别处重复维护):
+#   fish/.config/fish/conf.d/10-aliases.fish  运行时加载
+#   fish/.config/fish/functions/cheat.fish    cheat 命令
+#   tools/gen-docs                            文档表格 (just docs)
+
+ls	eza --group-directories-first	增强版 ls (目录优先/彩色/git 状态)	eza
+cat	bat	语法高亮的 cat	bat
+du	dust	直观的磁盘占用树	dust
+find	fd	更快的文件查找	fd
+grep	rg	更快的文本搜索	rg
+catr	command cat	绕过 bat 使用系统 cat	-
+cp	cp -i	覆盖前确认 (安全默认)	-
+rm	rm -i	删除前确认 (安全默认)	-

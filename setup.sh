@@ -22,8 +22,22 @@ PACKAGE_LIST="$SCRIPT_DIR/packages.txt"
 # Oh My Fish 安装路径（fish 插件管理器，foreign-env 的 fenv 依赖它）
 OMF_PATH="${XDG_DATA_HOME:-$HOME/.local/share}/omf"
 
+# Stow 包数据（唯一真相源：包名 / 说明 / 链接目标 / 是否保留现有配置）
+PACKAGES_TSV="$SCRIPT_DIR/data/packages.tsv"
 # 仓库内不参与 Stow 的顶层目录
-NON_PACKAGES=(docs)
+NON_PACKAGES_FILE="$SCRIPT_DIR/.non-packages"
+
+# 读取 .non-packages（一行一个目录，忽略空行与注释）
+load_non_packages() {
+    NON_PACKAGES=()
+    [ -f "$NON_PACKAGES_FILE" ] || return 0
+    local dir
+    while IFS= read -r dir; do
+        dir="${dir%%#*}"
+        dir="${dir//[[:space:]]/}"
+        [ -n "$dir" ] && NON_PACKAGES+=("$dir")
+    done < "$NON_PACKAGES_FILE"
+}
 
 # 是否为非包目录
 is_non_package() {
@@ -34,15 +48,53 @@ is_non_package() {
     return 1
 }
 
-# 动态发现 Stow 包：仓库顶层目录（glob 默认跳过隐藏目录），排除非包目录
+# 列出 data/packages.tsv 中的包名（保持文件顺序）
+data_packages() {
+    [ -f "$PACKAGES_TSV" ] || return 0
+    local name
+    while IFS=$'\t' read -r name _rest; do
+        [ -z "$name" ] && continue
+        case "$name" in \#*) continue ;; esac
+        printf '%s\n' "$name"
+    done < "$PACKAGES_TSV"
+}
+
+# 查询包在 packages.tsv 中的字段: 1=说明 2=链接目标 3=保留标记
+package_field() {
+    local want="$1" field="$2" name desc target keep risk
+    [ -f "$PACKAGES_TSV" ] || return 1
+    while IFS=$'\t' read -r name desc target keep risk; do
+        [ "$name" = "$want" ] || continue
+        case "$field" in
+            1) printf '%s' "$desc" ;;
+            2) printf '%s' "$target" ;;
+            3) printf '%s' "${keep:--}" ;;
+        esac
+        return 0
+    done < "$PACKAGES_TSV"
+    return 1
+}
+
+# 包在链接目标上是否应保留现有配置 (keep)
+package_keeps_target() {
+    [ "$(package_field "$1" 3)" = "keep" ]
+}
+
+# 动态发现 Stow 包：优先用 data/packages.tsv，缺失时退回目录扫描
 discover_packages() {
     local dir pkg
+    if [ -f "$PACKAGES_TSV" ]; then
+        data_packages
+        return 0
+    fi
     for dir in */; do
         pkg=${dir%/}
         is_non_package "$pkg" && continue
         echo "$pkg"
     done
 }
+
+load_non_packages
 
 # 打印带颜色的消息
 print_info() {
@@ -353,46 +405,26 @@ echo ""
 BACKUP_DIR="$HOME/.dotfiles_backup_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$BACKUP_DIR"
 
-# 备份现有配置
-if [ -d "$HOME/.config/fish" ] && [ ! -L "$HOME/.config/fish" ]; then
-    print_info "备份 ~/.config/fish"
-    cp -r "$HOME/.config/fish" "$BACKUP_DIR/"
-fi
+# 备份现有配置：逐个包按其链接目标 (data/packages.tsv 第 3 列) 处理，
+# 目标已是指向仓库的软链接时跳过，避免把链接本身备份成副本。
+backup_target() {
+    local target="$1" name="$2" src="$HOME/${target#\~/}"
+    [ -e "$src" ] || [ -L "$src" ] || return 0
+    [ -L "$src" ] && return 0
+    print_info "备份 $target"
+    if [ -d "$src" ]; then
+        mkdir -p "$BACKUP_DIR/$(dirname "${target#\~/}")"
+        cp -r "$src" "$BACKUP_DIR/${target#\~/}"
+    else
+        mkdir -p "$BACKUP_DIR/$(dirname "${target#\~/}")"
+        cp "$src" "$BACKUP_DIR/${target#\~/}"
+    fi
+}
 
-if [ -d "$HOME/.config/fastfetch" ] && [ ! -L "$HOME/.config/fastfetch" ]; then
-    print_info "备份 ~/.config/fastfetch"
-    cp -r "$HOME/.config/fastfetch" "$BACKUP_DIR/"
-fi
-
-if [ -f "$HOME/.config/starship.toml" ] && [ ! -L "$HOME/.config/starship.toml" ]; then
-    print_info "备份 ~/.config/starship.toml"
-    cp "$HOME/.config/starship.toml" "$BACKUP_DIR/"
-fi
-
-if [ -d "$HOME/.config/atuin" ] && [ ! -L "$HOME/.config/atuin" ]; then
-    print_info "备份 ~/.config/atuin"
-    cp -r "$HOME/.config/atuin" "$BACKUP_DIR/"
-fi
-
-if [ -d "$HOME/.config/helix" ] && [ ! -L "$HOME/.config/helix" ]; then
-    print_info "备份 ~/.config/helix"
-    cp -r "$HOME/.config/helix" "$BACKUP_DIR/"
-fi
-
-if [ -d "$HOME/.config/tmux" ] && [ ! -L "$HOME/.config/tmux" ]; then
-    print_info "备份 ~/.config/tmux"
-    cp -r "$HOME/.config/tmux" "$BACKUP_DIR/"
-fi
-
-if [ -d "$HOME/.config/git" ] && [ ! -L "$HOME/.config/git" ]; then
-    print_info "备份 ~/.config/git"
-    cp -r "$HOME/.config/git" "$BACKUP_DIR/"
-fi
-
-if [ -d "$HOME/.termux" ] && [ ! -L "$HOME/.termux" ]; then
-    print_info "备份 ~/.termux"
-    cp -r "$HOME/.termux" "$BACKUP_DIR/"
-fi
+while IFS= read -r pkg; do
+    target="$(package_field "$pkg" 2)" || continue
+    [ -n "$target" ] && backup_target "$target" "$pkg"
+done < <(discover_packages)
 
 if [ -d "$BACKUP_DIR" ] && [ "$(ls -A "$BACKUP_DIR")" ]; then
     print_success "配置已备份到: $BACKUP_DIR"
@@ -422,14 +454,16 @@ else
     print_error "非交互环境需加 --yes 才会删除现有配置，已中止"
     exit 1
 fi
-rm -rf "$HOME/.config/fish" 2>/dev/null || true
-rm -rf "$HOME/.config/fastfetch" 2>/dev/null || true
-rm -f "$HOME/.config/starship.toml" 2>/dev/null || true
-rm -rf "$HOME/.config/atuin" 2>/dev/null || true
-rm -rf "$HOME/.config/helix" 2>/dev/null || true
-rm -rf "$HOME/.config/tmux" 2>/dev/null || true
-# 不删除 ~/.config/git: 可能含 user.name / user.email，冲突时由 stow 报告
-rm -rf "$HOME/.termux" 2>/dev/null || true
+# 按数据文件逐个清理链接目标；标记为 keep 的包不删（目标可能含用户私有数据）
+while IFS= read -r pkg; do
+    target="$(package_field "$pkg" 2)" || continue
+    [ -n "$target" ] || continue
+    if package_keeps_target "$pkg"; then
+        print_info "保留 $target (包 $pkg 标记为 keep)"
+        continue
+    fi
+    rm -rf "$HOME/${target#\~/}" 2>/dev/null || true
+done < <(discover_packages)
 
 # 使用 Stow 链接所有包
 print_info "链接配置文件..."
@@ -518,53 +552,20 @@ echo ""
 
 ALL_LINKED=true
 
+# 验证方式统一: 目标路径存在 (软链接或 stow 折叠后的目录) 即视为已链接
 for pkg in "${PACKAGES[@]}"; do
     echo -n "  检查 $pkg ... "
-    case "$pkg" in
-        bin)
-            if [ -L "$HOME/.local/bin/dot" ] || [ -x "$HOME/.local/bin/dot" ]; then
-                echo -e "${GREEN}正常${NC}"
-            else
-                echo -e "${YELLOW}未配置${NC}"
-            fi
-            ;;
-        fish)
-            if [ -L "$HOME/.config/fish" ] || [ -f "$HOME/.config/fish/config.fish" ]; then
-                echo -e "${GREEN}正常${NC}"
-            else
-                echo -e "${RED}异常${NC}"
-                ALL_LINKED=false
-            fi
-            ;;
-        fastfetch)
-            if [ -L "$HOME/.config/fastfetch" ] || [ -d "$HOME/.config/fastfetch" ]; then
-                echo -e "${GREEN}正常${NC}"
-            else
-                echo -e "${RED}异常${NC}"
-                ALL_LINKED=false
-            fi
-            ;;
-        termux)
-            if [ -L "$HOME/.termux" ] || [ -d "$HOME/.termux" ]; then
-                echo -e "${GREEN}正常${NC}"
-            else
-                echo -e "${RED}异常${NC}"
-                ALL_LINKED=false
-            fi
-            ;;
-        tmux)
-            if [ -L "$HOME/.config/tmux" ] || [ -f "$HOME/.config/tmux/tmux.conf" ]; then
-                echo -e "${GREEN}正常${NC}"
-            else
-                echo -e "${RED}异常${NC}"
-                ALL_LINKED=false
-            fi
-            ;;
-        *)
-            # 用户自加包无特判规则，提示用 dot status 复核
-            echo -e "${YELLOW}已链接，可用 dot status 复核${NC}"
-            ;;
-    esac
+    target="$(package_field "$pkg" 2)" || target=""
+    if [ -z "$target" ]; then
+        echo -e "${YELLOW}数据文件缺少记录，可用 dot status 复核${NC}"
+        continue
+    fi
+    if [ -e "$HOME/${target#\~/}" ] || [ -L "$HOME/${target#\~/}" ]; then
+        echo -e "${GREEN}正常${NC}"
+    else
+        echo -e "${RED}异常${NC}"
+        ALL_LINKED=false
+    fi
 done
 
 echo ""
@@ -614,16 +615,8 @@ echo "  dot restow <包> - 重新链接配置包"
 echo ""
 echo -e "${CYAN}🔧 常用快捷命令：${NC}"
 echo ""
-echo "  ..      - 返回上级目录"
-echo "  l       - 详细列表"
-echo "  pkgi    - 安装包"
-echo "  pkgu    - 更新系统"
-echo "  status  - git status"
-echo "  commit  - git commit"
-echo "  push    - git push"
-echo "  c       - 清屏"
-echo "  q       - 退出"
-echo "  cheat   - 查看所有快捷命令"
+echo "  cheat   - 查看全部快捷命令 (从数据文件生成，始终最新)"
+echo "  just    - 查看全部一键指令"
 echo ""
 echo -e "${CYAN}💡 提示：${NC}"
 echo ""

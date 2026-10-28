@@ -285,7 +285,7 @@ chsh -s bash
 
 ```bash
 cd "$(dot path)"
-stow -R -t ~ bin fish fastfetch starship atuin git helix tmux termux
+dot restow           # 按 data/packages.tsv 重新链接全部包
 ```
 
 ### 完全卸载
@@ -296,7 +296,7 @@ chsh -s bash
 
 # 2. 取消所有链接
 cd "$(dot path)"
-stow -D -t ~ bin fish fastfetch starship atuin git helix tmux termux
+dot unstow           # 按 data/packages.tsv 取消全部链接
 
 # 3. 删除仓库（可选）
 rm -rf ~/dotfiles

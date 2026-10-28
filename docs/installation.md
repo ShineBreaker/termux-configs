@@ -30,12 +30,13 @@ bash setup.sh
 # 完全关闭应用后重新打开
 ```
 
-安装脚本会自动装好 [just](https://github.com/casey/just) 与 [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish) + foreign-env（后者让 Fish 继承 Bash 登录环境）。之后在仓库目录运行 `just` 查看全部一键指令，常用：
+安装脚本会自动装好 [just](https://github.com/casey/just) 与 [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish) + foreign-env（后者让 Fish 继承 Bash 登录环境）。之后在仓库目录运行 `just` 查看全部一键指令（配方注释即说明，README 的指令表也由它生成）：
 
 ```bash
+just --list         # 查看全部指令
 just setup          # 完整安装
-just install-emacs  # 安装 Emacs 配置 (UniEmacs)：clone 仓库、部署原生 Emacs 入口、预装字体并在 Termux 预构建插件，见 UniEmacs docs/mobile
-just restow         # 修改配置后重新链接
+just restow         # 修改配置后重新链接全部包
+just docs           # 数据文件改动后同步文档与 cheat
 ```
 
 ### 方式二：手动安装
@@ -49,7 +50,8 @@ git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
 cd ~/dotfiles
 
 # 3. 链接所有配置包
-stow -t ~ bin fish fastfetch starship atuin git helix tmux termux
+stow -t ~ bin        # 先链接 bin，dot 命令才可用
+dot stow             # 按 data/packages.tsv 链接全部包
 
 # 4. 安装 Oh My Fish 与 foreign-env（让 Fish 继承 Bash 环境）
 #    先下载安装器再执行，才能传入非交互参数
@@ -93,6 +95,53 @@ bash setup.sh
 2. **历史搜索**：按 `↑` 键搜索历史命令
 3. **长按复制**：长按终端文本可复制
 4. **音量键**：音量+ 是 Ctrl，音量- 是 Alt
+5. **快捷参考**：`cheat` 查看全部缩写/函数/一键指令
+
+---
+
+## 🔧 进阶功能（可选）
+
+工具遵循"已安装则自动启用"的原则（见 `fish/.config/fish/conf.d/00-init.fish`），
+与 README 同源，由 `tools/gen-docs` 从 `data/optional.tsv` 生成：
+
+<!-- gen:optional -->
+- **Starship 提示符**: `pkg install starship`，安装后自动接管提示符，使用仓库内 `starship/.config/starship.toml` 小屏优化配置；未安装时使用内置简版提示符
+- **zoxide 智能跳转**: `pkg install zoxide`，安装后 `cd` 自动变为智能跳转
+- **fzf 模糊查找**: `pkg install fzf`
+- **Atuin 历史搜索**: `pkg install atuin`，安装后 Ctrl-R / ↑ 弹出模糊搜索 (排在 fzf 之后接管)
+- **现代 CLI 别名**: `pkg install eza bat dust fd` (ripgrep 已内置)，装上后 `ls/cat/du/find/grep` 自动替换为现代工具，见 `fish/.config/fish/data/alias.tsv`
+- **Helix 编辑器**: 已随 `packages.txt` 安装；配置启用触摸定位光标、失焦自动保存等移动端友好项，主题 `transparent` 跟随终端背景，`languages.toml` 为 fish/clang 启用保存即格式化
+- **Git 规范**: 链接 `git` 包后全局启用 Conventional Commits 提交模板、常用别名与全局忽略 (不含 user.name/email)
+- **Bash 环境继承**: 安装脚本自动装好 [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish) 与 [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时用 `fenv` 按 bash 优先级 (`~/.bash_profile` → `~/.bash_login` → `~/.profile`) 导入用户环境 (见 `conf.d/zz-bash-env.fish`)
+- **tmux 终端复用**: `tmux` 已随 `packages.txt` 安装；新标签页自动进入 tmux，每个标签页拿到可读的唯一会话名 (如 `calm-otter`)。配置包 `tmux` 提供前缀 `Ctrl-b` 的键位 (`?` 速查、`s` 选择器、`f` 模糊跳转、复制模式)，`TMUX_AUTO=0 fish` 跳过自动进入。详见 [tmux 配置](./tmux.md)
+<!-- /gen -->
+
+---
+
+## 🔄 同步配置到新设备
+
+```bash
+# 1. 在新设备上安装依赖
+pkg install git stow fish
+
+# 2. 克隆仓库 (任意目录)
+git clone https://github.com/ShineBreaker/termux-configs.git ~/dotfiles
+
+# 3. 运行安装脚本
+cd ~/dotfiles
+bash setup.sh
+
+# 4. 重启 Termux
+```
+
+---
+
+## 📱 使用技巧
+
+1. **自动补全**：输入命令时按 `TAB` 键
+2. **历史搜索**：按 `↑` 键搜索历史命令
+3. **长按复制**：长按终端文本可复制
+4. **音量键**：音量+ 是 Ctrl，音量- 是 Alt
 
 ---
 
@@ -104,7 +153,7 @@ bash setup.sh
 - **zoxide 智能跳转**: `pkg install zoxide`，安装后 `cd` 自动变为智能跳转
 - **fzf 模糊查找**: `pkg install fzf`
 - **Atuin 历史搜索**: `pkg install atuin`，安装后 Ctrl-R / ↑ 弹出模糊搜索（排在 fzf 之后接管）
-- **现代 CLI 别名**: `pkg install eza bat dust fd`（ripgrep 已内置），装上后 `ls/cat/du/find/grep` 自动替换为现代工具，见 `conf.d/10-aliases.fish`
+- **现代 CLI 别名**: `pkg install eza bat dust fd`（ripgrep 已内置），装上后 `ls/cat/du/find/grep` 自动替换为现代工具，见 `fish/.config/fish/data/alias.tsv`
 - **Helix 编辑器**: 已随 `packages.txt` 安装，配置启用触摸定位光标、失焦自动保存等移动端友好项
 - **Git 规范**: 链接 `git` 包后全局启用 Conventional Commits 提交模板、常用别名与全局忽略（不含 user.name/email）
 - **Bash 环境继承**: 安装脚本自动装好 Oh My Fish + [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时通过 `fenv` 按 bash 优先级（`~/.bash_profile` → `~/.bash_login` → `~/.profile`）导入用户环境（见 `conf.d/zz-bash-env.fish`）

@@ -8,34 +8,21 @@
 
 `dot` 是一个封装了 Stow 的便捷命令。它通过 `~/.local/bin/dot` 软链接自动定位仓库，**与克隆位置无关**；也可用 `DOTFILES_DIR` 环境变量手动指定。
 
-### 常用命令
+> 下表由 `tools/gen-docs` 从 `bin/.local/bin/dot` 的 `usage()` 生成，不要手改。
 
-```bash
-# 进入 dotfiles 目录
-dot cd
-
-# 输出仓库路径 (用于脚本中引用)
-dot path
-
-# 链接配置包
-dot stow fish
-dot stow termux
-
-# 取消链接
-dot unstow fish
-
-# 重新链接 (修改配置后)
-dot restow fish
-
-# 查看所有包及链接状态
-dot list
-
-# 检查链接状态 (已链接 / 未链接 / 冲突)
-dot status
-
-# 添加新包
-dot add nvim
-```
+<!-- gen:dot -->
+| 命令 | 说明 |
+|------|------|
+| `dot path` | 输出仓库路径 |
+| `dot cd` | 进入仓库目录 (fish 用户提供；其他 shell 用 cd $(dot path)) |
+| `dot add <包名>` | 添加新包 (交互式，并登记到 data/packages.tsv) |
+| `dot stow [包名...]` | 创建符号链接 (缺省=全部包) |
+| `dot unstow [包名...]` | 移除符号链接 (缺省=全部包) |
+| `dot restow [包名...]` | 重新创建符号链接 (缺省=全部包) |
+| `dot list` | 列出所有包及链接状态 |
+| `dot status` | 检查链接状态 |
+| `dot docs` | 从数据文件重新生成文档与 cheat (tools/gen-docs) |
+<!-- /gen -->
 
 ---
 
@@ -68,10 +55,13 @@ stow -R -t ~ <package>
 
 ## 📁 添加新配置包
 
+包的唯一真相源是 `data/packages.tsv`（列：包名 / 说明 / 链接目标 / 是否保留）。
+`dot add` 会同时建目录并登记到该文件，推荐用它。
+
 ### 使用 `dot add` 命令
 
 ```bash
-# 创建新包结构
+# 交互式创建新包结构，并追加一行到 data/packages.tsv
 dot add nvim
 
 # 这将创建：
@@ -87,14 +77,20 @@ dot add nvim
    mkdir -p nvim/.config/nvim
    ```
 
-2. 将配置文件移动到包目录：
+2. 在 `data/packages.tsv` 追加一行：
+   ```
+   nvim	Neovim 配置	~/.config/nvim/	-
+   ```
+
+3. 将配置文件移动到包目录：
    ```bash
    mv ~/.config/nvim/config.toml nvim/.config/nvim/
    ```
 
-3. 创建链接：
+4. 链接并同步文档：
    ```bash
    dot stow nvim
+   just docs
    ```
 
 ---
@@ -114,7 +110,7 @@ dot status
 
 ```bash
 cd "$(dot path)"
-stow -R -t ~ bin fish fastfetch starship atuin git helix tmux termux
+dot restow           # 按 data/packages.tsv 重新链接全部包
 ```
 
 ---
@@ -145,7 +141,7 @@ dot stow fish
 
 2. **修改前先备份**
    ```bash
-   cp fish/.config/fish/conf.d/99-abbr.fish fish/.config/fish/conf.d/99-abbr.fish.bak
+   cp fish/.config/fish/data/abbr.tsv fish/.config/fish/data/abbr.tsv.bak
    ```
 
 3. **修改后重新链接**

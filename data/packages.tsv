@@ -1,0 +1,23 @@
+# Stow 配置包数据 —— 唯一真相源
+#
+# 列: 包名 / 说明 / 链接目标 / 保留 / 修改风险
+#   保留: -      安装时备份并清理旧配置后重新链接
+#         keep   不清理 (目标可能含用户私有数据，如 git 的 user.name)
+#
+# 消费方 (全部读本文件，勿在别处重复维护):
+#   setup.sh          备份 / 清理 / 链接 / 验证
+#   bin/.local/bin/dot  包列表与状态 (dot list / dot status)
+#   tools/gen-docs      文档中的包表 (just docs)
+#
+# 新增包: mkdir 包目录 + 加一行 → just docs
+# (包目录由 */ 自动发现；不参与 Stow 的顶层目录写在 .non-packages)
+
+bin	dot 管理命令 (~/.local/bin/dot)	~/.local/bin/dot	-	中 - dot 命令失效
+fish	Fish Shell 配置	~/.config/fish/	-	高 - 影响 Shell 启动
+fastfetch	系统信息显示配置	~/.config/fastfetch/	-	低 - 仅影响显示
+starship	Starship 提示符配置	~/.config/starship.toml	-	低 - 仅影响提示符
+atuin	Atuin 命令历史搜索配置	~/.config/atuin/	-	低 - 仅影响历史搜索
+git	Git 全局配置 (提交模板/别名/忽略，不含身份)	~/.config/git/	keep	中 - 影响 Git 行为 (不含身份)
+helix	Helix 编辑器配置	~/.config/helix/	-	低 - 仅影响编辑器
+tmux	tmux 终端复用配置 (前缀 C-b)	~/.config/tmux/	-	低 - 仅影响 tmux 会话
+termux	Termux 应用设置 (含登录 MOTD)	~/.termux/	-	中 - 影响应用行为

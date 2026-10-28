@@ -2,12 +2,26 @@
 # Dotfiles 管理脚本
 # 通过 Stow 链接后 (~/.local/bin/dot)，从脚本自身路径自动定位仓库，
 # 克隆到任意目录均可使用；也可用 DOTFILES_DIR 环境变量覆盖。
+#
+# 包清单的唯一真相源是 data/packages.tsv；本脚本的 usage() 又是文档里
+# dot 命令表的数据源 (tools/gen-docs 解析)，因此新增子命令只需改本文件。
 
 SCRIPT_PATH="$(readlink -f "$0")"
 DOTFILES_DIR="${DOTFILES_DIR:-${SCRIPT_PATH%/bin/.local/bin/dot}}"
 
+# Stow 包数据（唯一真相源: 包名 / 说明 / 链接目标 / 是否保留现有配置）
+PACKAGES_TSV="$DOTFILES_DIR/data/packages.tsv"
 # 仓库内不参与 Stow 的顶层目录
-NON_PACKAGES=(docs)
+NON_PACKAGES_FILE="$DOTFILES_DIR/.non-packages"
+
+NON_PACKAGES=()
+if [ -f "$NON_PACKAGES_FILE" ]; then
+    while IFS= read -r dir; do
+        dir="${dir%%#*}"
+        dir="${dir//[[:space:]]/}"
+        [ -n "$dir" ] && NON_PACKAGES+=("$dir")
+    done < "$NON_PACKAGES_FILE"
+fi
 
 cd "$DOTFILES_DIR" 2>/dev/null || {
     echo "错误: 无法定位 dotfiles 仓库 (当前推导: $DOTFILES_DIR)" >&2
@@ -16,21 +30,22 @@ cd "$DOTFILES_DIR" 2>/dev/null || {
 }
 
 usage() {
-    echo "用法: dot <命令> [包名]"
+    echo "用法: dot <命令> [包名...]"
     echo ""
     echo "命令:"
     echo "  path            输出仓库路径"
     echo "  cd              进入仓库目录 (fish 用户提供；其他 shell 用 cd \$(dot path))"
-    echo "  add <包名>      添加新包 (交互式)"
-    echo "  stow <包名>     创建符号链接"
-    echo "  unstow <包名>   移除符号链接"
-    echo "  restow <包名>   重新创建符号链接"
-    echo "  list            列出所有包"
+    echo "  add <包名>      添加新包 (交互式，并登记到 data/packages.tsv)"
+    echo "  stow [包名...]  创建符号链接 (缺省=全部包)"
+    echo "  unstow [包名...]  移除符号链接 (缺省=全部包)"
+    echo "  restow [包名...]  重新创建符号链接 (缺省=全部包)"
+    echo "  list            列出所有包及链接状态"
     echo "  status          检查链接状态"
+    echo "  docs            从数据文件重新生成文档与 cheat (tools/gen-docs)"
     echo ""
     echo "示例:"
     echo "  dot stow fish"
-    echo "  dot restow termux"
+    echo "  dot restow"
     echo "  dot list"
 }
 
@@ -43,14 +58,38 @@ is_non_package() {
     return 1
 }
 
-# 列出所有包名
+# 列出所有包名: 优先用 data/packages.tsv (保持文件顺序)，缺失时退回目录扫描
 each_package() {
-    local dir pkg
+    local dir pkg name
+    if [ -f "$PACKAGES_TSV" ]; then
+        while IFS=$'\t' read -r name _rest; do
+            [ -z "$name" ] && continue
+            case "$name" in \#*) continue ;; esac
+            printf '%s\n' "$name"
+        done < "$PACKAGES_TSV"
+        return 0
+    fi
     for dir in */; do
         pkg=${dir%/}
         is_non_package "$pkg" && continue
         echo "$pkg"
     done
+}
+
+# 查询包在 packages.tsv 中的字段: 1=说明 2=链接目标 3=保留标记
+package_field() {
+    local want="$1" field="$2" name desc target keep risk
+    [ -f "$PACKAGES_TSV" ] || return 1
+    while IFS=$'\t' read -r name desc target keep risk; do
+        [ "$name" = "$want" ] || continue
+        case "$field" in
+            1) printf '%s' "$desc" ;;
+            2) printf '%s' "$target" ;;
+            3) printf '%s' "${keep:--}" ;;
+        esac
+        return 0
+    done < "$PACKAGES_TSV"
+    return 1
 }
 
 # 用 stow 干跑检测包状态: linked / unlinked / conflict
@@ -68,8 +107,43 @@ pkg_status() {
     fi
 }
 
+# 将参数展开为包名列表；未给参数时返回全部包
+resolve_packages() {
+    if [ "$#" -gt 0 ]; then
+        printf '%s\n' "$@"
+    else
+        each_package
+    fi
+}
+
+# run_stow <stow 参数> [包名...]，缺省对所有包执行
+run_stow() {
+    local flag="$1"; shift
+    local pkg
+    local -a pkgs=()
+    if [ "$#" -gt 0 ]; then
+        pkgs=("$@")
+    else
+        while IFS= read -r pkg; do
+            pkgs+=("$pkg")
+        done < <(each_package)
+    fi
+    if [ "$#" -eq 0 ]; then
+        echo "对全部 ${#pkgs[@]} 个包执行 stow $flag ..."
+    fi
+    for pkg in "${pkgs[@]}"; do
+        echo -n "  $pkg ... "
+        if stow "$flag" -v -t ~ "$pkg" > /dev/null 2>&1; then
+            echo "完成"
+        else
+            echo "失败"
+            stow "$flag" -v -t ~ "$pkg" >&2 || true
+        fi
+    done
+}
+
 list_packages() {
-    local pkg status mark color
+    local pkg status mark color desc
     echo "可用包 (位于 $DOTFILES_DIR):"
     while IFS= read -r pkg; do
         status="$(pkg_status "$pkg")"
@@ -78,28 +152,50 @@ list_packages() {
             conflict) mark="!"; color='\033[1;33m' ;;
             *)        mark="○"; color='\033[0m' ;;
         esac
-        echo -e "  $color$mark $pkg\033[0m ($status)"
+        desc="$(package_field "$pkg" 1)" || desc=""
+        printf "  %b%s %s\033[0m (%s) %s\n" "$color" "$mark" "$pkg" "$status" "$desc"
     done < <(each_package)
 }
 
 check_status() {
-    local pkg status
+    local pkg status desc
     echo "链接状态 ($DOTFILES_DIR → $HOME):"
     while IFS= read -r pkg; do
         status="$(pkg_status "$pkg")"
+        desc="$(package_field "$pkg" 2)" || desc=""
         case "$status" in
-            linked)   echo -e "  \033[0;32m✓ $pkg (已链接)\033[0m" ;;
-            conflict) echo -e "  \033[0;31m! $pkg (链接冲突)\033[0m" ;;
-            *)        echo -e "  \033[0m○ $pkg (未链接)\033[0m" ;;
+            linked)   echo -e "  \033[0;32m✓ $pkg (已链接)\033[0m $desc" ;;
+            conflict) echo -e "  \033[0;31m! $pkg (链接冲突)\033[0m $desc" ;;
+            *)        echo -e "  \033[0m○ $pkg (未链接)\033[0m $desc" ;;
         esac
     done < <(each_package)
 }
 
-require_package_arg() {
-    if [ -z "$2" ]; then
-        echo "错误: 请指定包名" >&2
+add_package() {
+    local name="$1" path desc
+    if [ -z "$name" ]; then
+        # 交互式: 依次询问包名与配置路径
+        echo "请输入包名:"
+        read -r name
+    fi
+    [ -n "$name" ] || { echo "错误: 包名不能为空" >&2; exit 1; }
+    if [ -d "$name" ] || [ -f "$PACKAGES_TSV" ] && package_field "$name" 1 >/dev/null 2>&1; then
+        echo "错误: 包 $name 已存在" >&2
         exit 1
     fi
+
+    echo "请输入配置路径 (相对于 ~，如 .config/nvim):"
+    read -r path
+    path="${path/#\~\//}"
+    path="${path/#\~}"
+    [ -n "$path" ] || { echo "错误: 配置路径不能为空" >&2; exit 1; }
+    [ -z "$desc" ] && desc="TODO: 补充说明"
+
+    mkdir -p "$name/$path"
+    printf '%s\t%s\t~/%s\t-\tTODO: 补充风险\n' "$name" "$desc" "$path" >> "$PACKAGES_TSV"
+    echo "包目录已创建: $name/$path"
+    echo "已登记到 $PACKAGES_TSV (请修改说明)"
+    echo "将配置文件移入后运行: dot stow $name"
 }
 
 case "$1" in
@@ -107,34 +203,33 @@ case "$1" in
         echo "$DOTFILES_DIR"
         ;;
     add)
-        require_package_arg "$@"
-        echo "创建新包: $2"
-        echo "请输入配置路径 (相对于 ~):"
-        read -r path
-        # 包内路径须相对 ~ (stow 会映射到 $HOME)，剥离输入中的 ~ 前缀
-        path="${path/#\~\//}"
-        path="${path/#\~}"
-        mkdir -p "$2/$path"
-        echo "包目录已创建: $2/$path"
-        echo "请将配置文件移动到此目录，然后运行: dot stow $2"
+        add_package "$2"
         ;;
     stow)
-        require_package_arg "$@"
-        stow -v -t ~ "$2"
+        shift
+        run_stow -S "$@"
         ;;
     unstow)
-        require_package_arg "$@"
-        stow -D -v -t ~ "$2"
+        shift
+        run_stow -D "$@"
         ;;
     restow)
-        require_package_arg "$@"
-        stow -R -v -t ~ "$2"
+        shift
+        run_stow -R "$@"
         ;;
     list)
         list_packages
         ;;
     status)
         check_status
+        ;;
+    docs)
+        if [ -x "$DOTFILES_DIR/tools/gen-docs" ]; then
+            "$DOTFILES_DIR/tools/gen-docs"
+        else
+            echo "错误: 未找到 tools/gen-docs" >&2
+            exit 1
+        fi
         ;;
     *)
         usage

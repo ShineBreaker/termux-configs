@@ -3,6 +3,8 @@
 # SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
 #
 # SPDX-License-Identifier: MIT
+#
+# desc: 状态栏右侧的内存占用（读 /proc/meminfo）
 
 # mem-status — 输出内存占用百分比供 tmux 状态栏使用，例如 "RAM 69%"。
 # 用 /proc/meminfo 计算 (total-available)/total，不依赖 free/termux-api。

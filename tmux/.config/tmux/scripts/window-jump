@@ -3,6 +3,8 @@
 # SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
 #
 # SPDX-License-Identifier: MIT
+#
+# desc: 前缀 f，fzf 列出窗口并跳转（分组会话按 window_id 去重）
 
 # window-jump — fzf 跨 session 窗口跳转（前缀 C-b + f），移植自 Guix-configs，
 # 只依赖 tmux + fzf，Termux 可直接使用。

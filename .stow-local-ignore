@@ -6,6 +6,12 @@
 
 docs/
 
+# 不参与 Stow 的目录与文件 (与 .non-packages / data 数据源对应)
+data/
+tools/
+.non-packages
+__pycache__
+
 *.md
 
 # 软件列表文件

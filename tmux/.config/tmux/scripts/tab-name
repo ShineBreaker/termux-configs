@@ -3,6 +3,8 @@
 # SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
 #
 # SPDX-License-Identifier: MIT
+#
+# desc: 生成人类可读且唯一的标签页会话名，顺手回收残留的分组会话
 
 # tab-name — 为新建的 tmux 标签页生成一个人类可读、当前 server 内唯一的会话名。
 #

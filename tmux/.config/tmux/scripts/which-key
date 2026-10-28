@@ -3,34 +3,51 @@
 # SPDX-FileCopyrightText: 2026 BrokenShine <xchai404@gmail.com>
 #
 # SPDX-License-Identifier: MIT
+#
+# desc: 前缀 ? 的快捷键速查浮窗（从 tmux.conf 的 #@ 注解生成）
 
 # which-key — 快捷键速查 float 弹窗（前缀 C-b）。
-# 由 tmux.conf 的 display-popup 直接以 bash 运行，文案需与 tmux.conf 手工同步。
+# 由 tmux.conf 的 display-popup 直接以 bash 运行。
+#
+# 数据源: tmux.conf 里的 `#@ 分组 | 按键 | 说明` 注解——与 docs/tmux.md 的键位表
+# 同源，改键位只需改 tmux.conf 一处。
+#
+# 环境变量: TMUX_CONF 可覆盖配置路径（测试时用）。
+
+set -u
+
+conf="${TMUX_CONF:-$HOME/.config/tmux/tmux.conf}"
 
 cat <<'EOF'
 
   tmux 快捷键速查  前缀 = Ctrl-b  (Termux: 音量+ 与 b 同按)
   每个标签页是一个分组会话，名字如 calm-otter，显示在左上角
+EOF
 
-  基础                                  窗格
-    r      重新加载配置                   \      左右分屏
-    ?      显示本帮助                     -      上下分屏
-    d      脱离会话 (后台保留)            h j k l   切换窗格
-    z      放大 / 还原当前窗格            x      关闭窗格
-    s      会话·窗口浮窗选择器            Alt+←→↑↓     切换窗格
-    f      fzf 模糊跳转窗口               Ctrl+←→↑↓    调整大小
+# 按分组首次出现的顺序输出，同组不重复标题；前缀键加 "C-b " 前缀。
+awk -F' [|] ' '
+    /^#@ / {
+        sub(/^#@ /, "")
+        group = $1; key = $2; desc = $3
+        if (!(group in seen)) { seen[group] = 1; order[++n] = group }
+        if (group == "无前缀" || group == "复制模式") line[group, ++cnt[group]] = key "\t" desc
+        else line[group, ++cnt[group]] = "C-b " key "\t" desc
+    }
+    END {
+        for (i = 1; i <= n; i++) {
+            g = order[i]
+            printf "\n  %s\n", g
+            for (j = 1; j <= cnt[g]; j++) {
+                split(line[g, j], kv, "\t")
+                printf "    %-20s %s\n", kv[1], kv[2]
+            }
+        }
+    }
+' "$conf" 2>/dev/null || true
 
-  窗口 / 会话                           复制模式
-    c      新建窗口                       [ 或 Esc  进入复制模式
-    C      新建标签页 (自动命名)          v         开始选择
-    N      重命名标签页                   y / Enter 复制 (OSC52 / Termux:API)
-    X      关闭窗口                       Esc       退出复制模式
-    K      关闭会话
-    0-9 / Alt+1~5   切换窗口
+cat <<'EOF'
 
-  粘贴
-    p      粘贴 (Android 剪贴板 / tmux 缓冲)
-
+  提示: 无前缀 = 直接按，无需先按 Ctrl-b
 
   按回车关闭...
 EOF
