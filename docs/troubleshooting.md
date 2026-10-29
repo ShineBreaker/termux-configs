@@ -90,6 +90,43 @@ fish -c 'set -q TMUX_AUTO; and echo "TMUX_AUTO=$TMUX_AUTO"; or echo "未设置"'
 TMUX_AUTO=0 fish
 ```
 
+### 开新标签页卡在启动（tmux server 假死）
+
+**症状**: 开新标签页后终端一直卡住，敲什么都没反应；或者 `tmux ls` / `tmux kill-server` 也不返回。
+
+**原因**: Termux 被系统冻结或强杀后，残留的 tmux server 变成「假死」——进程还在、
+socket 还在，但不再处理命令。此时任何 `tmux` 命令都会**永久阻塞**。
+
+**解决**:
+
+```bash
+# 1. 强杀假死的 server 与残留客户端 (冻结的进程只有 SIGKILL 才吃)
+pkill -9 -x tmux
+
+# 2. 确认 tmux 命令恢复响应
+timeout 3 tmux ls
+
+# 3. 开新标签页即可 (会自动重建 main)
+```
+
+本仓库已加护栏：进入前先探活（1 秒超时），探到假死会自愈，仍不恢复就跳过
+自动进入并提示「server 无响应」，**不会把 Fish 卡死**。若看到该提示，按上面
+第 1 步清理一次即可。相关配置见 `docs/customization.md` 的「tmux 假死保护」。
+
+### 手动恢复卡住的登录 (MOTD)
+
+**症状**: 终端卡在登录阶段，连 Fish 提示符都不出来。
+
+**解决**: MOTD 里的每个外部命令都带超时，正常不会卡。若确实卡住：
+
+```bash
+# 1. 杀掉卡住的 motd 进程
+pkill -f 'motd.sh'
+
+# 2. 临时关掉 MOTD 再开标签页
+touch ~/.hushlogin
+```
+
 ### 想临时回到普通 Fish
 
 ```bash

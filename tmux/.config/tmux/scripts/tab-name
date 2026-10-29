@@ -18,8 +18,26 @@
 #
 # 环境变量：
 #   TMUX_TAB_NAME  直接指定名字（不做去重，重名时由 tmux 报错）
+#
+# 【超时护栏】本脚本在 fish 启动路径上运行，一旦卡住整个 shell 都起不来。
+# tmux server 假死时（进程还在、socket 还在，但不再处理命令）任何 tmux 命令
+# 都会永久阻塞，因此：
+#   1. 所有 tmux 调用都用 timeout -k（SIGTERM 无效再 SIGKILL），保证一定返回；
+#   2. 输出写临时文件而不是管道 —— tmux 派生的 server 进程可能长期持有管道
+#      写端，管道读端会一直等不到 EOF。
 
 set -u
+
+# 在超时内执行 tmux，输出写入文件；返回 timeout 的退出码
+tmux_capture() { # tmux_capture <输出文件> <tmux 参数...>
+    local out="$1"; shift
+    command timeout -k 1 2 tmux "$@" >"$out" 2>/dev/null </dev/null
+}
+
+# 在超时内执行 tmux，只关心成败
+tmux_quiet() {
+    command timeout -k 1 2 tmux "$@" >/dev/null 2>&1 </dev/null
+}
 
 # 想加词直接往数组里塞（尽量选短、无歧义的英文单词）
 adjs=(calm bold keen warm neat swift quiet brave crisp tidy mellow sunny rapid cosy)
@@ -32,15 +50,21 @@ fi
 
 # 回收残留：零客户端 + 属于分组（session_group 非空）+ 不是锚点 main
 # 用 tab 作分隔符，会话名里带空格（前缀 N 改名）也不会解析错位
+sessions_file=$(mktemp)
+tmux_capture "$sessions_file" list-sessions -F $'#{session_name}\t#{session_attached}\t#{session_group}'
 while IFS=$'\t' read -r name attached group; do
     [ -n "$name" ] || continue
     [ -n "$group" ] || continue
     [ "$attached" = 0 ] || continue
     [ "$name" = main ] && continue
-    tmux kill-session -t "=$name" 2>/dev/null
-done < <(tmux list-sessions -F $'#{session_name}\t#{session_attached}\t#{session_group}' 2>/dev/null)
+    tmux_quiet kill-session -t "=$name"
+done < "$sessions_file"
+rm -f "$sessions_file"
 
-taken=$(tmux list-sessions -F '#{session_name}' 2>/dev/null)
+taken_file=$(mktemp)
+tmux_capture "$taken_file" list-sessions -F '#{session_name}'
+taken=$(cat "$taken_file")
+rm -f "$taken_file"
 
 for _ in $(seq 40); do
     candidate="${adjs[RANDOM % ${#adjs[@]}]}-${animals[RANDOM % ${#animals[@]}]}"

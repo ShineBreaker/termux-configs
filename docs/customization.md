@@ -88,6 +88,35 @@ set -Ue TMUX_AUTO
 dot restow fish
 ```
 
+### tmux 假死保护（启动不卡）
+
+Termux 被系统冻结或强杀后，残留的 tmux server 可能变成「假死」：进程还在、
+socket 还在，但不再处理任何命令。此时任何 `tmux` 命令都会**永久阻塞**，开新
+标签页就会卡在 Fish 启动上（取会话名、登录 MOTD 查会话都会卡）。
+
+本仓库的防线：
+
+| 位置 | 措施 |
+|------|------|
+| `conf.d/15-tmux.fish` | 进入前先探活（1 秒超时）；探到假死就 `kill-server` → `pkill -9 -x tmux`，仍不恢复就跳过自动进入并给出提示 |
+| `scripts/tab-name` / `scripts/new-tab` | 所有 `tmux` 调用带 `timeout -k`（SIGTERM 无效再 SIGKILL）；输出写临时文件，避免管道被 tmux 派生进程长期持有 |
+| `~/.termux/motd.sh` | 同上，登录提示永远不会把终端卡住 |
+| 进入 tmux 前 | 执行 `termux-wake-lock`，降低应用被系统冻结的概率 |
+
+关闭唤醒锁（不想让设备不休眠时）：
+
+```bash
+TMUX_WAKE_LOCK=0 fish     # 仅本次
+set -Ux TMUX_WAKE_LOCK 0  # 永久
+```
+
+手动清理已经假死的 server：
+
+```bash
+pkill -9 -x tmux   # 强杀冻结的 server 与残留客户端
+tmux ls            # 重新开始 (会新建 main)
+```
+
 ### 自定义 tmux 键位与外观
 
 ```bash

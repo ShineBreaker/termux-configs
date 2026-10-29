@@ -30,6 +30,13 @@ TMUX_TAB_NAME=work fish  # 临时指定本标签页的名字
 
 详见 `docs/customization.md` 的「调整 tmux 会话复用」。
 
+> **假死保护**：Termux 被系统冻结/强杀后，残留的 tmux server 可能变成「假死」，
+> 任何 `tmux` 命令都会永久阻塞、开新标签页就卡在 Fish 启动上。因此进入前会先
+> 探活（1 秒超时），探到假死就自愈（`kill-server` → `pkill -9 -x tmux`），仍不
+> 恢复就跳过自动进入并提示，绝不把 shell 卡死；`tab-name` / `new-tab` / MOTD 里
+> 的 `tmux` 调用也一律带 `timeout -k`。详见 `docs/customization.md` 的
+> 「tmux 假死保护」。
+
 ---
 
 ## 🏷️ 标签页标识符（会话名）

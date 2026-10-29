@@ -1,7 +1,7 @@
 # Termux 优化配置项目 - AI Agent 工作指引
 
-> **版本**: 4.0  
-> **最后更新**: 2026-10-19  
+> **版本**: 4.1  
+> **最后更新**: 2026-10-29  
 > **项目目标**: 为 Android Termux 环境提供优化的 Fish Shell 配置，提升移动端终端使用体验
 
 ---
@@ -180,6 +180,12 @@ type -q zoxide; and zoxide init fish | source
 type -q starship; and starship init fish | source
 ```
 
+**启动路径上的外部命令必须带超时**：登录 / Fish 启动 / MOTD 都在关键路径上，
+任何一次阻塞都会让终端「看起来死了」。统一用 `timeout -k <宽限> <时长>`
+（先 SIGTERM，不理会再 SIGKILL），且不要用管道接可能派生子进程的输出
+（tmux 会派生 server 进程并长期持有管道写端）——改写临时文件再读。
+详见 `docs/customization.md` 的「tmux 假死保护」。
+
 ### 4. 配置即文档 (Configuration as Documentation)
 
 - 所有缩写命令使用描述性名称
@@ -213,6 +219,33 @@ type -q starship; and starship init fish | source
 ---
 
 ## 工作规范
+
+### 提交规范（每次操作后必须 commit）
+
+**硬性要求：每次完成对仓库的修改后，必须立即 `git commit`，不得把改动留在工作区。**
+
+```bash
+cd "$(dot path)"
+
+# 1. 提交前：确保生成内容与数据源一致、语法无误
+just check
+fish -n fish/.config/fish/conf.d/*.fish
+
+# 2. 提交 (Conventional Commits，格式见 ~/.config/git/gitmessage)
+git add -A
+git commit -m "fix(tmux): 简短说明"
+
+# 3. 需要同步到远端时再 push (不要自动 push)
+git push
+```
+
+规则要点：
+
+1. **一次操作一次提交**：改动做完了就提交，别攒着；下一次任务开始时工作区应是干净的。
+2. **先 `just check` 再提交**：改了数据文件（`data/*.tsv`、`fish/.../data/*.tsv`、`tmux.conf` 的 `#@` 注解、脚本 `# desc:`）必须先 `just docs` 生成，再提交，**不要把生成内容与数据源不一致的状态提交上去**。
+3. **提交信息用 Conventional Commits**：`feat|fix|refactor|docs|style|chore(scope): 说明`。
+4. **只提交本仓库内容**：不碰用户身份信息（`user.name`/`user.email` 不入库）。
+5. **提交后自检**：`git status` 应为干净；如需回退，用 `git restore` / `git reset --hard` 而不是手工删文件。
 
 ### 修改配置文件前
 
@@ -527,6 +560,7 @@ fastfetch --debug         # 调试模式
 | 2026-10-19 | 3.11 | tmux 标签页改为「main 分组会话 + 可读唯一会话名」：新增 `scripts/tab-name`（形容词-动物命名、自动回收零客户端分组会话）与 `scripts/new-tab`（前缀 C 新建标签页）；状态栏/终端标题改用 `#S`、新增前缀 `N` 改名；`window-jump` 按 window_id 去重；MOTD 改列已附着的标签页名 |
 | 2026-10-19 | 3.12 | Git 缩写统一为子命令词形式（`push` / `pull` / `status` 等），移除 `gs` / `ga` / `gc` / `gp` / `gl` / `gd` / `cm` / `cmall`；git 别名 `st` / `lg` 改为 `graph` 并去掉 `st` |
 | 2026-10-19 | 4.0 | 统一真相源：缩写/别名改为 `fish/.config/fish/data/*.tsv` 数据驱动，包清单改为 `data/packages.tsv`，非包目录集中在 `.non-packages`；新增 `tools/gen-docs` + `just docs`/`just check`，README/docs/AGENTS 的表格与 `cheat` 全部由数据生成；tmux 键位以 `tmux.conf` 的 `#@` 注解为源，`which-key` 运行时读取 |
+| 2026-10-29 | 4.1 | 修复「开新标签页一直卡住」：Termux 被系统冻结后残留的 tmux server 假死，任何 `tmux` 命令永久阻塞（`tab-name` 取名与 MOTD 查会话最先卡住）。`conf.d/15-tmux.fish` 增加 1 秒探活 + `kill-server`/`pkill -9` 自愈 + 跳过进入的兜底；`tab-name`/`new-tab`/`motd.sh` 的 tmux 调用统一加 `timeout -k` 并改用临时文件取输出（避免派生进程持有管道写端）；进入 tmux 前 `termux-wake-lock` 降低被冻结概率 |
 
 ---
 
@@ -543,7 +577,7 @@ fastfetch --debug         # 调试模式
 - [ ] `dot status` 无冲突
 - [ ] 功能已在实际环境中测试
 - [ ] 移动端显示效果已验证
-- [ ] Git 提交已完成 (如适用)
+- [ ] Git 提交已完成 (本次操作必须已 commit，工作区干净)
 
 ---
 

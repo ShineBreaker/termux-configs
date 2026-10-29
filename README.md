@@ -404,7 +404,7 @@ git add . && git commit -m "描述你的修改" && git push
 - **Helix 编辑器**: 已随 `packages.txt` 安装；配置启用触摸定位光标、失焦自动保存等移动端友好项，主题 `transparent` 跟随终端背景，`languages.toml` 为 fish/clang 启用保存即格式化
 - **Git 规范**: 链接 `git` 包后全局启用 Conventional Commits 提交模板、常用别名与全局忽略 (不含 user.name/email)
 - **Bash 环境继承**: 安装脚本自动装好 [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish) 与 [foreign-env](https://github.com/oh-my-fish/plugin-foreign-env)；登录 Fish 时用 `fenv` 按 bash 优先级 (`~/.bash_profile` → `~/.bash_login` → `~/.profile`) 导入用户环境 (见 `conf.d/zz-bash-env.fish`)
-- **tmux 终端复用**: `tmux` 已随 `packages.txt` 安装；新标签页自动进入 tmux，每个标签页拿到可读的唯一会话名 (如 `calm-otter`)。配置包 `tmux` 提供前缀 `Ctrl-b` 的键位 (`?` 速查、`s` 选择器、`f` 模糊跳转、复制模式)，`TMUX_AUTO=0 fish` 跳过自动进入。详见 [tmux 配置](./tmux.md)
+- **tmux 终端复用**: `tmux` 已随 `packages.txt` 安装；新标签页自动进入 tmux，每个标签页拿到可读的唯一会话名 (如 `calm-otter`)。配置包 `tmux` 提供前缀 `Ctrl-b` 的键位 (`?` 速查、`s` 选择器、`f` 模糊跳转、复制模式)，`TMUX_AUTO=0 fish` 跳过自动进入。所有 `tmux` 调用均带超时与探活自愈，server 假死时不会卡住启动。详见 [tmux 配置](./tmux.md)
 <!-- /gen -->
 
 ---
