@@ -83,6 +83,8 @@ function cheat
     echo (set_color normal)"  retry         命令失败时自动重试"
     echo (set_color normal)"  run           按当前目录构建文件派发: justfile→just"
     echo (set_color normal)"  termux-reload  "
+    echo (set_color normal)"  tmux-doctor   tmux server 无响应时给出选项：清除僵死进程并重试 / 跳过"
+    echo (set_color normal)"  tmux-probe    探测 tmux server 是否响应：ok=正常 none=没起 hung=卡死"
     echo (set_color normal)"  update        "
     echo
     echo (set_color yellow)"⚡ just 一键指令:"

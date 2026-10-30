@@ -98,10 +98,26 @@ socket 还在，但不再处理任何命令。此时任何 `tmux` 命令都会**
 
 | 位置 | 措施 |
 |------|------|
-| `conf.d/15-tmux.fish` | 进入前先探活（1 秒超时）；探到假死就 `kill-server` → `pkill -9 -x tmux`，仍不恢复就跳过自动进入并给出提示 |
+| `conf.d/15-tmux.fish` | 进入前先探活（`tmux-probe`，1 秒超时）；探到假死就交给 `tmux-doctor` 交互处理 |
 | `scripts/tab-name` / `scripts/new-tab` | 所有 `tmux` 调用带 `timeout -k`（SIGTERM 无效再 SIGKILL）；输出写临时文件，避免管道被 tmux 派生进程长期持有 |
 | `~/.termux/motd.sh` | 同上，登录提示永远不会把终端卡住 |
 | 进入 tmux 前 | 执行 `termux-wake-lock`，降低应用被系统冻结的概率 |
+
+**关键原则：tmux 出问题绝不影响 Fish 打开。** 进入 tmux 分两步且每步都有超时
+（先后台建会话 → 再确认 server 仍响应 → 才接管终端），任何一步失败都只是
+「不进 tmux」，Fish 照常打开。
+
+server 假死时的交互选项（`tmux-doctor`，启动时自动触发，也可随时手动执行）：
+
+```
+  [tmux] server 无响应（可能被系统冻结，tmux 命令会一直卡住）
+        r 清除僵死进程并重试    s 跳过本次（进入普通 Fish）
+        选择 >
+```
+
+- `r`：先 `tmux kill-server`，再 `pkill -9 -x tmux` 强杀残留（被系统冻结的
+  进程只有 SIGKILL 才吃），然后重新探活并继续进入 tmux。**会丢失现有 tmux 会话**。
+- `s`（或直接回车 / 15 秒无人应答）：跳过本次自动进入，Fish 正常可用。
 
 关闭唤醒锁（不想让设备不休眠时）：
 
@@ -116,6 +132,21 @@ set -Ux TMUX_WAKE_LOCK 0  # 永久
 pkill -9 -x tmux   # 强杀冻结的 server 与残留客户端
 tmux ls            # 重新开始 (会新建 main)
 ```
+
+### Shell 接管链（为什么开标签页就是 fish）
+
+Termux 开启新会话时执行的是 `bash -l`，所以仓库里有两层接管：
+
+| 环节 | 作用 |
+|------|------|
+| `~/.termux/shell` | 指向 fish 的**符号链接**。Termux 的 `$PREFIX/bin/login` 用 `realpath` 读它，从而以 fish 启动会话并显示 MOTD |
+| `bash` 包 (`~/.bashrc`) | 交互式**登录** bash 直接 `exec fish -l`；非交互 (fenv 采集环境) 与手动 `bash` 都不受影响 |
+
+> `~/.termux/shell` 必须是符号链接：写成普通文本文件时 `login` 会把它当成可执行
+> 文件直接 exec，报 `Permission denied`。
+
+手动敲 `bash` 仍然是 bash（保留「用 bash 排查 fish 配置」这条逃生通道），
+需要手动进 fish 时直接敲 `fish` 即可。
 
 ### 自定义 tmux 键位与外观
 

@@ -21,3 +21,4 @@ git	Git 全局配置 (提交模板/别名/忽略，不含身份)	~/.config/git/	
 helix	Helix 编辑器配置	~/.config/helix/	-	低 - 仅影响编辑器
 tmux	tmux 终端复用配置 (前缀 C-b)	~/.config/tmux/	-	低 - 仅影响 tmux 会话
 termux	Termux 应用设置 (含登录 MOTD)	~/.termux/	-	中 - 影响应用行为
+bash	Bash 登录兜底 (交互式登录时切到 fish)	~/.bashrc	-	中 - 交互式登录 bash 会切换到 fish

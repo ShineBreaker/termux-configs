@@ -32,10 +32,10 @@ TMUX_TAB_NAME=work fish  # 临时指定本标签页的名字
 
 > **假死保护**：Termux 被系统冻结/强杀后，残留的 tmux server 可能变成「假死」，
 > 任何 `tmux` 命令都会永久阻塞、开新标签页就卡在 Fish 启动上。因此进入前会先
-> 探活（1 秒超时），探到假死就自愈（`kill-server` → `pkill -9 -x tmux`），仍不
-> 恢复就跳过自动进入并提示，绝不把 shell 卡死；`tab-name` / `new-tab` / MOTD 里
-> 的 `tmux` 调用也一律带 `timeout -k`。详见 `docs/customization.md` 的
-> 「tmux 假死保护」。
+> 探活（`tmux-probe`，1 秒超时），探到假死就弹出选项：**清除僵死进程并重试** /
+> **跳过本次**（`tmux-doctor`，也可随时手动执行）；`tab-name` / `new-tab` / MOTD
+> 里的 `tmux` 调用也一律带 `timeout -k`。**tmux 出问题绝不影响 Fish 打开**——
+> 最坏情况只是这次不进 tmux。详见 `docs/customization.md` 的「tmux 假死保护」。
 
 ---
 

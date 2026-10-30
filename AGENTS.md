@@ -1,7 +1,7 @@
 # Termux 优化配置项目 - AI Agent 工作指引
 
-> **版本**: 4.1  
-> **最后更新**: 2026-10-29  
+> **版本**: 4.2  
+> **最后更新**: 2026-10-30  
 > **项目目标**: 为 Android Termux 环境提供优化的 Fish Shell 配置，提升移动端终端使用体验
 
 ---
@@ -74,6 +74,8 @@
 │           │   ├── retry.fish
 │           │   ├── run.fish
 │           │   ├── termux-reload.fish
+│           │   ├── tmux-doctor.fish
+│           │   ├── tmux-probe.fish
 │           │   └── update.fish
 │           └── config.fish
 ├── fastfetch/    # 系统信息显示配置
@@ -120,6 +122,8 @@
 │       ├── font.ttf
 │       ├── motd.sh
 │       └── termux.properties
+├── bash/         # Bash 登录兜底 (交互式登录时切到 fish)
+│   └── .bashrc
 ├── data/         # Stow 包清单 (单一真相源)
 │   ├── features.tsv
 │   ├── optional.tsv
@@ -151,6 +155,7 @@
 | `helix` | Helix 编辑器配置 | `~/.config/helix/` | 低 - 仅影响编辑器 |
 | `tmux` | tmux 终端复用配置 (前缀 C-b) | `~/.config/tmux/` | 低 - 仅影响 tmux 会话 |
 | `termux` | Termux 应用设置 (含登录 MOTD) | `~/.termux/` | 中 - 影响应用行为 |
+| `bash` | Bash 登录兜底 (交互式登录时切到 fish) | `~/.bashrc` | 中 - 交互式登录 bash 会切换到 fish |
 <!-- /gen -->
 
 ---
@@ -561,6 +566,7 @@ fastfetch --debug         # 调试模式
 | 2026-10-19 | 3.12 | Git 缩写统一为子命令词形式（`push` / `pull` / `status` 等），移除 `gs` / `ga` / `gc` / `gp` / `gl` / `gd` / `cm` / `cmall`；git 别名 `st` / `lg` 改为 `graph` 并去掉 `st` |
 | 2026-10-19 | 4.0 | 统一真相源：缩写/别名改为 `fish/.config/fish/data/*.tsv` 数据驱动，包清单改为 `data/packages.tsv`，非包目录集中在 `.non-packages`；新增 `tools/gen-docs` + `just docs`/`just check`，README/docs/AGENTS 的表格与 `cheat` 全部由数据生成；tmux 键位以 `tmux.conf` 的 `#@` 注解为源，`which-key` 运行时读取 |
 | 2026-10-29 | 4.1 | 修复「开新标签页一直卡住」：Termux 被系统冻结后残留的 tmux server 假死，任何 `tmux` 命令永久阻塞（`tab-name` 取名与 MOTD 查会话最先卡住）。`conf.d/15-tmux.fish` 增加 1 秒探活 + `kill-server`/`pkill -9` 自愈 + 跳过进入的兜底；`tab-name`/`new-tab`/`motd.sh` 的 tmux 调用统一加 `timeout -k` 并改用临时文件取输出（避免派生进程持有管道写端）；进入 tmux 前 `termux-wake-lock` 降低被冻结概率 |
+| 2026-10-30 | 4.2 | 修复「终端里不是 fish」：Termux 开会话执行的是 `bash -l`，原来的 fish 接管靠旧的 `bash` 包（已被删除）里的本地 `~/.bashrc`。重新加入 `bash` 包（`~/.bashrc`：交互式登录才 `exec fish -l`，非交互与手动 `bash` 不受影响）；`~/.termux/shell` 改为指向 fish 的**符号链接**（`login` 用 `realpath` 读它，普通文本文件会报 Permission denied）；`setup.sh` 清理目标时去掉结尾斜杠（`rm -rf ~/x/` 会跟随符号链接删掉仓库目录内容）。tmux 改为「探活 → 假死时交互选择（清除僵死进程并重试 / 跳过）」，进入 tmux 拆成「后台建会话 → 确认响应 → 接管」两步，**tmux 出问题绝不影响 Fish 打开** |
 
 ---
 

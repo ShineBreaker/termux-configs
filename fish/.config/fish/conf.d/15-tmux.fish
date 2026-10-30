@@ -14,35 +14,13 @@
 #
 # 【超时护栏】Termux 被系统冻结/强杀后，残留的 tmux server 可能变成「假死」：
 # 进程还在、socket 还在，但不再处理任何命令。此时任何 tmux 命令都会**永久阻塞**，
-# fish 启动就卡死 (tab-name 取名、MOTD 查询会话都是这么卡的)。
-# 因此本文件所有 tmux 调用一律加超时: timeout -k <宽限> <时长>
-#   -k: 先发 SIGTERM，若进程不理会再发 SIGKILL，保证调用一定会返回
-# 进入 tmux 前还会先探活；探到假死就清掉旧 server 重建，绝不让 shell 卡住。
+# fish 启动就卡死 (tab-name 取名、MOTD 查会话都是这么卡的)。
+# 因此本文件所有 tmux 调用一律加超时 (timeout -k: SIGTERM 无效再 SIGKILL)，
+# 进入前先用 tmux-probe 探活；探到假死就交给 tmux-doctor 交互处理
+# (清除僵死进程并重试 / 跳过)。**无论选哪个，Fish 都会正常打开**——
+# tmux 只是「进不去」，绝不允许它把 shell 拖死。
 
 if status is-interactive; and not set -q TMUX; and type -q tmux
-
-    # ---- server 探活 / 自愈 ------------------------------------------------
-    function __tmux_probe
-        # ok = 有 server 且响应; none = 没有 server; hung = server 卡死不响应
-        # 健康时 tmux 是毫秒级返回，1 秒还没回来说明已经假死
-        command timeout -k 0.5 1 tmux list-sessions >/dev/null 2>&1 </dev/null
-        set -l rc $status
-        switch $rc
-            case 0
-                echo ok
-            case 1
-                echo none
-            case '*'
-                echo hung
-        end
-    end
-
-    function __tmux_recover
-        # 先礼后兵: 优雅关闭 -> 强杀残留 (被系统冻结的进程只有 SIGKILL 才吃)
-        command timeout -k 0.5 1 tmux kill-server >/dev/null 2>&1 </dev/null
-        command pkill -9 -x tmux >/dev/null 2>&1
-        sleep 0.3
-    end
 
     set -l tmux_auto main
     if set -q TMUX_AUTO
@@ -53,15 +31,16 @@ if status is-interactive; and not set -q TMUX; and type -q tmux
         case 0 off false no
             # 显式禁用: 保持普通 Fish
         case '*'
-            # 1) 探活: server 卡死先自愈，自愈不了就放弃进入 (宁可普通 fish 也不卡)
-            set -l probe (__tmux_probe)
+            # 1) 探活: server 卡死就交给 tmux-doctor (交互: 清除并重试 / 跳过)
+            set -l probe (tmux-probe)
             if test "$probe" = hung
-                __tmux_recover
-                set probe (__tmux_probe)
+                tmux-doctor
+                set probe (tmux-probe)
             end
 
             if test "$probe" = hung
-                echo "[tmux] server 无响应，已跳过自动进入 (TMUX_AUTO=0 可关闭本提示)" >&2
+                # 仍然无响应: 不进 tmux, 但 Fish 正常继续 (绝不卡住启动)
+                echo "[tmux] server 无响应，已跳过自动进入（普通 Fish 正常可用）" >&2
             else
                 # 2) 取标签页名: tmux 配置包提供 tab-name 脚本，未链接该包时退回随机名
                 set -l tab_name
@@ -90,10 +69,18 @@ if status is-interactive; and not set -q TMUX; and type -q tmux
                 end
 
                 # 4) 进入 tmux
+                # 分两步且每步都带超时: 先后台建会话 -> 确认 server 仍然响应 ->
+                #    才 exec 接管终端。这样即使 server 在最后一步假死, Fish 也
+                #    一定能正常打开 (最坏情况只是不进 tmux)。
                 switch "$tmux_auto"
                     case tab per-tab
                         # 每标签页完全独立: 窗口与历史都不共享，会话名同样可读且唯一
-                        exec tmux new-session -s "$tab_name"
+                        command timeout -k 2 5 tmux new-session -d -s "$tab_name"
+                        if test (tmux-probe) = ok
+                            exec tmux attach-session -t "$tab_name"
+                        else
+                            echo "[tmux] 接管会话失败，已保留普通 Fish（可执行 tmux attach -t $tab_name 接管）" >&2
+                        end
                     case '*'
                         # 默认: main 是共享窗口的锚点，标签页本身作为分组会话挂上去，
                         # 于是每个标签页有自己的当前窗口，但窗口/历史仍是同一套
@@ -103,7 +90,12 @@ if status is-interactive; and not set -q TMUX; and type -q tmux
                             command timeout -k 1 2 tmux has-session -t =main >/dev/null 2>&1
                             or command timeout -k 2 5 tmux new-session -d -s main
                         end
-                        exec tmux new-session -t =main -s "$tab_name"
+                        command timeout -k 2 5 tmux new-session -d -t =main -s "$tab_name"
+                        if test (tmux-probe) = ok
+                            exec tmux attach-session -t "$tab_name"
+                        else
+                            echo "[tmux] 接管会话失败，已保留普通 Fish（可执行 tmux attach -t $tab_name 接管）" >&2
+                        end
                 end
             end
     end

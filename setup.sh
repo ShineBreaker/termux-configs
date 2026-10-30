@@ -462,7 +462,11 @@ while IFS= read -r pkg; do
         print_info "保留 $target (包 $pkg 标记为 keep)"
         continue
     fi
-    rm -rf "$HOME/${target#\~/}" 2>/dev/null || true
+    # 先去掉结尾的斜杠再删：rm -rf "~/x/" 会跟随符号链接删掉「目标目录里的内容」，
+    # 而链接目标恰好是仓库内的折叠链接（如 ~/.termux -> 仓库 termux/.termux），
+    # 带斜杠会把仓库里的文件一并删光（连带删掉 ~/.termux/shell 标记）。
+    target_path="${HOME}/${target#\~/}"
+    rm -rf "${target_path%/}" 2>/dev/null || true
 done < <(discover_packages)
 
 # 使用 Stow 链接所有包
@@ -512,8 +516,10 @@ if [ -d "$HOME/.termux" ]; then
     rm -f "$HOME/.termux/shell" 2>/dev/null || true
     FISH_BIN="$(command -v fish || true)"
     if [ -n "$FISH_BIN" ]; then
-        echo "$FISH_BIN" > "$HOME/.termux/shell" 2>/dev/null \
-            && print_success "已创建 shell 标记文件" \
+        # 必须是「符号链接」：Termux 的 $PREFIX/bin/login 用 realpath 读取它，
+        # 写成普通文本文件会被当成可执行文件直接 exec，导致 Permission denied。
+        ln -sf "$FISH_BIN" "$HOME/.termux/shell" 2>/dev/null \
+            && print_success "已创建 shell 标记文件 (符号链接 -> $FISH_BIN)" \
             || print_warning "无法创建 shell 标记文件，请手动设置"
     else
         print_warning "未找到 fish，跳过 shell 标记文件"

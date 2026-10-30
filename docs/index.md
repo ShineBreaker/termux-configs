@@ -14,6 +14,7 @@
 | 特性 | 说明 |
 |------|------|
 | 🐟 Fish Shell | 现代化 Shell，自动补全、语法高亮、智能提示 |
+| 🐚 Shell 兜底 | 交互式登录 bash 自动切到 fish (手动 `bash` 仍是 bash，留作排错通道) |
 | 🧩 会话复用 | 新标签页自动进入 tmux，每个标签页有可读的唯一会话名 (如 `calm-otter`)，窗口/历史共享且断开后可恢复 |
 | 🧬 Bash 环境继承 | 登录 Fish 时按 bash 优先级导入用户 profile (`~/.bash_profile` → `~/.bash_login` → `~/.profile`) |
 | 🔎 历史搜索 | Atuin 保存命令历史，Ctrl-R / ↑ 模糊搜索，弥补手机输入成本 |
@@ -65,6 +66,8 @@
 │           │   ├── retry.fish
 │           │   ├── run.fish
 │           │   ├── termux-reload.fish
+│           │   ├── tmux-doctor.fish
+│           │   ├── tmux-probe.fish
 │           │   └── update.fish
 │           └── config.fish
 ├── fastfetch/    # 系统信息显示配置
@@ -111,6 +114,8 @@
 │       ├── font.ttf
 │       ├── motd.sh
 │       └── termux.properties
+├── bash/         # Bash 登录兜底 (交互式登录时切到 fish)
+│   └── .bashrc
 ├── data/         # Stow 包清单 (单一真相源)
 │   ├── features.tsv
 │   ├── optional.tsv
@@ -142,6 +147,7 @@
 | `helix` | Helix 编辑器配置 | `~/.config/helix/` |
 | `tmux` | tmux 终端复用配置 (前缀 C-b) | `~/.config/tmux/` |
 | `termux` | Termux 应用设置 (含登录 MOTD) | `~/.termux/` |
+| `bash` | Bash 登录兜底 (交互式登录时切到 fish) | `~/.bashrc` |
 <!-- /gen -->
 
 ## 📚 文档导航

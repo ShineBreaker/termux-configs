@@ -109,9 +109,39 @@ timeout 3 tmux ls
 # 3. 开新标签页即可 (会自动重建 main)
 ```
 
-本仓库已加护栏：进入前先探活（1 秒超时），探到假死会自愈，仍不恢复就跳过
-自动进入并提示「server 无响应」，**不会把 Fish 卡死**。若看到该提示，按上面
-第 1 步清理一次即可。相关配置见 `docs/customization.md` 的「tmux 假死保护」。
+本仓库已加护栏：进入前先探活（1 秒超时），探到假死会弹出选项让你选
+「清除僵死进程并重试」或「跳过本次」，**无论选哪个，Fish 都会正常打开**。
+若看到该提示，按上面第 1 步清理一次即可；也可以随时手动执行 `tmux-doctor`。
+相关配置见 `docs/customization.md` 的「tmux 假死保护」。
+
+### 终端里不是 fish（只有 bash）
+
+**症状**: 新标签页里是 bash 提示符，不是 fish。
+
+**原因**: Termux 开启会话时执行的是 `bash -l`，需要有人接管；仓库靠两层：
+`~/.termux/shell`（指向 fish 的符号链接）与 `bash` 包（`~/.bashrc` 里交互式
+登录时 `exec fish -l`）。任一层缺失都会退回 bash。
+
+**解决**:
+
+```bash
+# 1. 检查 shell 标记 (必须是符号链接)
+ls -l ~/.termux/shell
+# 期望: ~/.termux/shell -> /data/data/com.termux/files/usr/bin/fish
+# 没有就重建:
+ln -sf "$(command -v fish)" ~/.termux/shell
+
+# 2. 检查 bash 兜底是否已链接
+ls -l ~/.bashrc
+ls -l ~/Projects/termux-configs/bash/.bashrc
+# 缺失就重新链接:
+dot restow bash
+
+# 3. 重新开一个标签页验证
+```
+
+注意：手动敲 `bash` 仍然会停在 bash（这是留给排错用的逃生通道），
+只有**登录** shell（`bash -l`）才会自动切到 fish。
 
 ### 手动恢复卡住的登录 (MOTD)
 
