@@ -1,7 +1,7 @@
 # Termux 优化配置项目 - AI Agent 工作指引
 
-> **版本**: 4.2  
-> **最后更新**: 2026-10-30  
+> **版本**: 4.3  
+> **最后更新**: 2026-11-01  
 > **项目目标**: 为 Android Termux 环境提供优化的 Fish Shell 配置，提升移动端终端使用体验
 
 ---
@@ -567,6 +567,7 @@ fastfetch --debug         # 调试模式
 | 2026-10-19 | 4.0 | 统一真相源：缩写/别名改为 `fish/.config/fish/data/*.tsv` 数据驱动，包清单改为 `data/packages.tsv`，非包目录集中在 `.non-packages`；新增 `tools/gen-docs` + `just docs`/`just check`，README/docs/AGENTS 的表格与 `cheat` 全部由数据生成；tmux 键位以 `tmux.conf` 的 `#@` 注解为源，`which-key` 运行时读取 |
 | 2026-10-29 | 4.1 | 修复「开新标签页一直卡住」：Termux 被系统冻结后残留的 tmux server 假死，任何 `tmux` 命令永久阻塞（`tab-name` 取名与 MOTD 查会话最先卡住）。`conf.d/15-tmux.fish` 增加 1 秒探活 + `kill-server`/`pkill -9` 自愈 + 跳过进入的兜底；`tab-name`/`new-tab`/`motd.sh` 的 tmux 调用统一加 `timeout -k` 并改用临时文件取输出（避免派生进程持有管道写端）；进入 tmux 前 `termux-wake-lock` 降低被冻结概率 |
 | 2026-10-30 | 4.2 | 修复「终端里不是 fish」：Termux 开会话执行的是 `bash -l`，原来的 fish 接管靠旧的 `bash` 包（已被删除）里的本地 `~/.bashrc`。重新加入 `bash` 包（`~/.bashrc`：交互式登录才 `exec fish -l`，非交互与手动 `bash` 不受影响）；`~/.termux/shell` 改为指向 fish 的**符号链接**（`login` 用 `realpath` 读它，普通文本文件会报 Permission denied）；`setup.sh` 清理目标时去掉结尾斜杠（`rm -rf ~/x/` 会跟随符号链接删掉仓库目录内容）。tmux 改为「探活 → 假死时交互选择（清除僵死进程并重试 / 跳过）」，进入 tmux 拆成「后台建会话 → 确认响应 → 接管」两步，**tmux 出问题绝不影响 Fish 打开** |
+| 2026-11-01 | 4.3 | 修复「tmux 假死时按 `r` 没反应」：`tmux-doctor` 用 `timeout` 包裹 `bash -c 'read -n 1'`，但 `timeout` 默认会把子进程放进**新的进程组**，读端成了终端后台进程组，`read` 从 tty 读字符直接收到 `SIGTTIN` 停住——按 `r` 读不到，只能等 15 秒超时返回空，于是永远走「跳过」分支。改为 `timeout --foreground`（子进程留在 Fish 前台进程组），按键立即生效 |
 
 ---
 

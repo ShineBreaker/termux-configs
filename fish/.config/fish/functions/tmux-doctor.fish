@@ -18,8 +18,12 @@ function tmux-doctor -d "tmux server 无响应时给出选项：清除僵死进�
         (set_color -o green) (set_color normal) (set_color -o yellow) (set_color normal) (set_color normal)
     printf '        选择 > '
 
-    # 读一个字符；15 秒无人应答就当作跳过（避免无人值守时卡在启动阶段）
-    set -l ans (command timeout -k 1 15 bash -c 'IFS= read -r -n 1 a 2>/dev/null; printf "%s" "$a"' 2>/dev/null)
+    # 读一个字符；15 秒无人应答就当作跳过（避免无人值守时卡在启动阶段）。
+    # 【必须加 --foreground】timeout 默认会把子进程放进**新的进程组**，它就成了
+    # 终端的后台进程组；此时 read 从 tty 读字符会收到 SIGTTIN 直接停住，用户按
+    # r 也读不到 —— 只能干等 15 秒超时返回空，于是永远走「跳过」分支，看起来
+    # 就是「按 r 没用」。--foreground 让子进程留在 Fish 的前台进程组里。
+    set -l ans (command timeout --foreground -k 1 15 bash -c 'IFS= read -r -n 1 a 2>/dev/null; printf "%s" "$a"' 2>/dev/null)
     printf '\n'
 
     if not contains -- "$ans" r R
